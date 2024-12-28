@@ -36,4 +36,16 @@ public class AttendanceController {
         AttendanceResDTO.AttendanceAbsenteesResponse response = attendanceQueryService.getAbsentees(attendanceId, memberId);
         return CustomResponse.onSuccess(response);
     }
+
+    @GetMapping("/{memberId}")
+    public CustomResponse<AttendanceResDTO.AttendanceListResponse> getAttendances(
+            @RequestParam("id") Long clubId,                // 동아리 ID
+            @RequestParam(value = "cursor", required = false) Long cursor, // 마지막 데이터 ID (Optional)
+            @RequestParam(value = "offset", defaultValue = "10") int offset, // 몇 개의 데이터를 가져올지 (Default: 10)
+            @PathVariable Long memberId
+    ) {
+        AttendanceResDTO.AttendanceListResponse response =
+                attendanceQueryService.getAttendances(clubId, cursor, offset, memberId);
+        return CustomResponse.onSuccess(response);
+    }
 }

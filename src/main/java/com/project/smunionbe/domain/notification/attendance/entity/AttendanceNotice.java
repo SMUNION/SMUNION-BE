@@ -1,6 +1,7 @@
 package com.project.smunionbe.domain.notification.attendance.entity;
 
 import com.project.smunionbe.domain.club.entity.Club;
+import com.project.smunionbe.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @Table(name = "attendance_notice")
-public class AttendanceNotice {
+public class AttendanceNotice extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

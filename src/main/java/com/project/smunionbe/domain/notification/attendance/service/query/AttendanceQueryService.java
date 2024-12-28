@@ -40,4 +40,30 @@ public class AttendanceQueryService {
                 .toList();
         return new AttendanceResDTO.AttendanceAbsenteesResponse(attendanceId, absenteeDTOs);
     }
+
+    public AttendanceResDTO.AttendanceListResponse getAttendances(
+            Long clubId, Long cursor, int offset, Long memberId
+    ) {
+        // 1. 동아리 권한 검증
+        if (!memberRepository.existsByIdAndClubId(memberId, clubId)) {
+            throw new AccessDeniedException("해당 동아리에 접근할 수 없습니다.");
+        }
+        // 2. 출석 공지 목록 조회 (페이징 처리)
+        List<AttendanceNotice> attendanceNotices = attendanceRepository.findAttendancesWithPagination(clubId, cursor, offset);
+        // 3. 데이터 변환
+        List<AttendanceResDTO.AttendanceResponse> attendanceDTOs = attendanceNotices.stream()
+                .map(notice -> new AttendanceResDTO.AttendanceResponse(
+                        notice.getId(),
+                        notice.getTitle(),
+                        notice.getContent(),
+                        notice.getDate(),
+                        notice.getCreatedAt()
+                ))
+                .toList();
+        // 4. hasNext 계산 (조회된 데이터가 offset보다 큰지 확인)
+        boolean hasNext = attendanceNotices.size() > offset;
+        // 5. 다음 페이지의 cursor 값 설정
+        Long nextCursor = hasNext ? attendanceNotices.get(attendanceNotices.size() - 1).getId() : null;
+        return new AttendanceResDTO.AttendanceListResponse(attendanceDTOs, hasNext, nextCursor);
+    }
 }
