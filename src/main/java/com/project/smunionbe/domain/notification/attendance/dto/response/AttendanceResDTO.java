@@ -33,4 +33,14 @@ public class AttendanceResDTO {
             Long cursor
     ){
     }
+
+    public record AttendanceDetailResponse(
+            Long attendanceId,
+            String title,
+            String content,
+            String target,
+            LocalDateTime date,
+            LocalDateTime createdAt
+    ){
+    }
 }

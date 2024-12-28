@@ -48,4 +48,13 @@ public class AttendanceController {
                 attendanceQueryService.getAttendances(clubId, cursor, offset, memberId);
         return CustomResponse.onSuccess(response);
     }
+
+    @GetMapping("/{id}/{memberId}")
+    public CustomResponse<AttendanceResDTO.AttendanceDetailResponse> getAttendanceDetail(
+            @PathVariable("id") Long attendanceId,
+            @PathVariable Long memberId
+    ) {
+        AttendanceResDTO.AttendanceDetailResponse response = attendanceQueryService.getAttendanceDetail(attendanceId, memberId);
+        return CustomResponse.onSuccess(response);
+    }
 }

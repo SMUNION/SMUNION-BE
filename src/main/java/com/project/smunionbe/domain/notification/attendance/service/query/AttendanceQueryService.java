@@ -2,6 +2,7 @@ package com.project.smunionbe.domain.notification.attendance.service.query;
 
 import com.project.smunionbe.domain.member.entity.Member;
 import com.project.smunionbe.domain.member.repository.MemberRepository;
+import com.project.smunionbe.domain.notification.attendance.converter.AttendanceConverter;
 import com.project.smunionbe.domain.notification.attendance.dto.response.AttendanceResDTO;
 import com.project.smunionbe.domain.notification.attendance.entity.AttendanceNotice;
 import com.project.smunionbe.domain.notification.attendance.exception.AttendanceErrorCode;
@@ -65,5 +66,16 @@ public class AttendanceQueryService {
         // 5. 다음 페이지의 cursor 값 설정
         Long nextCursor = hasNext ? attendanceNotices.get(attendanceNotices.size() - 1).getId() : null;
         return new AttendanceResDTO.AttendanceListResponse(attendanceDTOs, hasNext, nextCursor);
+    }
+
+    public AttendanceResDTO.AttendanceDetailResponse getAttendanceDetail(Long attendanceId, Long memberId) {
+        // 1. 출석 공지 조회 (존재하지 않을 경우 예외 발생)
+        AttendanceNotice attendanceNotice = attendanceRepository.findById(attendanceId)
+                .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ATTENDANCE_NOT_FOUND));
+        // 2. 동아리 권한 검증
+        if (!memberRepository.existsByIdAndClubId(memberId, attendanceNotice.getClub().getId())) {
+            throw new AccessDeniedException("해당 동아리에 접근할 수 없습니다.");
+        }
+        return AttendanceConverter.toDetailResponse(attendanceNotice);
     }
 }
