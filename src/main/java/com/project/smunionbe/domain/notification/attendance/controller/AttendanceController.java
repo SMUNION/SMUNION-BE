@@ -1,7 +1,9 @@
 package com.project.smunionbe.domain.notification.attendance.controller;
 
 import com.project.smunionbe.domain.notification.attendance.dto.request.AttendanceReqDTO;
+import com.project.smunionbe.domain.notification.attendance.dto.response.AttendanceResDTO;
 import com.project.smunionbe.domain.notification.attendance.service.command.AttendanceCommandService;
+import com.project.smunionbe.domain.notification.attendance.service.query.AttendanceQueryService;
 import com.project.smunionbe.global.apiPayload.CustomResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,12 +19,21 @@ import org.springframework.web.bind.annotation.*;
 public class AttendanceController {
 
     private final AttendanceCommandService attendanceCommandService;
+    private final AttendanceQueryService attendanceQueryService;
 
-    @PostMapping("/{userId}")
+    @PostMapping("/{memberId}")
     public ResponseEntity<CustomResponse<String>> createAttendance(
-            @RequestBody @Valid AttendanceReqDTO.CreateAttendanceDTO request, @PathVariable Long userId) {
-        attendanceCommandService.createAttendance(request, userId);
+            @RequestBody @Valid AttendanceReqDTO.CreateAttendanceDTO request, @PathVariable Long memberId) {
+        attendanceCommandService.createAttendance(request, memberId);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(CustomResponse.onSuccess(HttpStatus.CREATED,"출석 공지가 성공적으로 생성되었습니다."));
+    }
+
+    @GetMapping("/status/{memberId}")
+    public CustomResponse<AttendanceResDTO.AttendanceAbsenteesResponse> getAbsentees(
+            @RequestParam("id") Long attendanceId, @PathVariable Long memberId
+    ) {
+        AttendanceResDTO.AttendanceAbsenteesResponse response = attendanceQueryService.getAbsentees(attendanceId, memberId);
+        return CustomResponse.onSuccess(response);
     }
 }

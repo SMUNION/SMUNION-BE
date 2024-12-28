@@ -20,8 +20,8 @@ public class AttendanceCommandService {
     private final AttendanceRepository attendanceRepository;
     private final ClubRepository clubRepository;
 
-    public void createAttendance(AttendanceReqDTO.CreateAttendanceDTO reqDTO, Long userId) {
-        Club club = clubRepository.findByIdAndUserId(reqDTO.clubId(), userId)
+    public void createAttendance(AttendanceReqDTO.CreateAttendanceDTO reqDTO, Long memberId) {
+        Club club = clubRepository.findByIdAndUserId(reqDTO.clubId(), memberId)
                 .orElseThrow(() -> new RuntimeException("해당 동아리에 접근할 수 없습니다."));
 
         AttendanceNotice attendanceNotice = AttendanceConverter.toAttendanceNotice(reqDTO, club);
