@@ -67,4 +67,16 @@ public class AttendanceController {
         attendanceCommandService.updateAttendance(attendanceId, request, memberId);
         return CustomResponse.onSuccess("출석 공지 수정 성공");
     }
+
+    @DeleteMapping("/{id}/{memberId}")
+    public CustomResponse<String> deleteAttendance(
+            @PathVariable("id") Long attendanceId,
+            @PathVariable Long memberId
+    ) {
+        // 서비스 호출
+        attendanceCommandService.deleteAttendance(attendanceId, memberId);
+
+        // 성공 응답 반환
+        return CustomResponse.onSuccess("출석 공지가 성공적으로 삭제되었습니다.");
+    }
 }

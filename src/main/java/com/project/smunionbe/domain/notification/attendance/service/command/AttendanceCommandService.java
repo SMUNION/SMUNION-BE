@@ -44,4 +44,15 @@ public class AttendanceCommandService {
 
         attendanceNotice.update(request.title(), request.content(), request.target(), request.date());
     }
+
+    public void deleteAttendance(Long attendanceId, Long memberId) {
+        AttendanceNotice attendanceNotice = attendanceRepository.findById(attendanceId)
+                .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ATTENDANCE_NOT_FOUND));
+
+        if (!memberRepository.existsByIdAndClubId(memberId, attendanceNotice.getClub().getId())) {
+            throw new AccessDeniedException("해당 동아리에 접근할 수 없습니다.");
+        }
+
+        attendanceRepository.delete(attendanceNotice);
+    }
 }
