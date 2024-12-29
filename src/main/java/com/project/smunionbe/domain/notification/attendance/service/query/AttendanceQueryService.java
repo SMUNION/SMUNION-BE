@@ -1,6 +1,7 @@
 package com.project.smunionbe.domain.notification.attendance.service.query;
 
 import com.project.smunionbe.domain.member.entity.Member;
+import com.project.smunionbe.domain.member.repository.MemberClubRepository;
 import com.project.smunionbe.domain.member.repository.MemberRepository;
 import com.project.smunionbe.domain.notification.attendance.converter.AttendanceConverter;
 import com.project.smunionbe.domain.notification.attendance.dto.response.AttendanceResDTO;
@@ -24,6 +25,7 @@ public class AttendanceQueryService {
 
     private final AttendanceRepository attendanceRepository;
     private final MemberRepository memberRepository;
+    private final MemberClubRepository memberClubRepository;
 
     public AttendanceResDTO.AttendanceAbsenteesResponse getAbsentees(Long attendanceId, Long memberId) {
         // 1. 출석 공지 조회 (존재하지 않을 경우 예외 발생)
@@ -31,7 +33,7 @@ public class AttendanceQueryService {
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ATTENDANCE_NOT_FOUND));
         // 2. 동아리 권한 검증
         Long clubId = attendanceNotice.getClub().getId();
-        if (!memberRepository.existsByIdAndClubId(memberId, clubId)) {
+        if (!memberClubRepository.existsByMemberIdAndClubId(memberId, clubId)) {
             throw new AttendanceException(AttendanceErrorCode.ACCESS_DENIED);
         }
         // 3. 미출석 인원 조회
@@ -46,7 +48,7 @@ public class AttendanceQueryService {
             Long clubId, Long cursor, int offset, Long memberId
     ) {
         // 1. 동아리 권한 검증
-        if (!memberRepository.existsByIdAndClubId(memberId, clubId)) {
+        if (!memberClubRepository.existsByMemberIdAndClubId(memberId, clubId)) {
             throw new AttendanceException(AttendanceErrorCode.ACCESS_DENIED);
         }
         // 2. 출석 공지 목록 조회 (페이징 처리)
@@ -73,7 +75,7 @@ public class AttendanceQueryService {
         AttendanceNotice attendanceNotice = attendanceRepository.findById(attendanceId)
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ATTENDANCE_NOT_FOUND));
         // 2. 동아리 권한 검증
-        if (!memberRepository.existsByIdAndClubId(memberId, attendanceNotice.getClub().getId())) {
+        if (!memberClubRepository.existsByMemberIdAndClubId(memberId, attendanceNotice.getClub().getId())) {
             throw new AttendanceException(AttendanceErrorCode.ACCESS_DENIED);
         }
         return AttendanceConverter.toDetailResponse(attendanceNotice);

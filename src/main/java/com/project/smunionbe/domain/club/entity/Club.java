@@ -1,7 +1,11 @@
 package com.project.smunionbe.domain.club.entity;
 
+import com.project.smunionbe.domain.member.entity.MemberClub;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -23,6 +27,9 @@ public class Club {
 
     @Column(name = "thumbnail_url")
     private String thumbnailUrl;
+
+    @OneToMany(mappedBy = "club", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MemberClub> memberClubs = new ArrayList<>();
 
     //스태프권한은 어떤식으로 해야할지 모르겠어서 일단 안했습니다.
 

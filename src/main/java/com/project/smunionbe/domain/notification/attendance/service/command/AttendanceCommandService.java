@@ -2,6 +2,7 @@ package com.project.smunionbe.domain.notification.attendance.service.command;
 
 import com.project.smunionbe.domain.club.entity.Club;
 import com.project.smunionbe.domain.club.repository.ClubRepository;
+import com.project.smunionbe.domain.member.repository.MemberClubRepository;
 import com.project.smunionbe.domain.member.repository.MemberRepository;
 import com.project.smunionbe.domain.notification.attendance.converter.AttendanceConverter;
 import com.project.smunionbe.domain.notification.attendance.dto.request.AttendanceReqDTO;
@@ -26,10 +27,17 @@ public class AttendanceCommandService {
     private final AttendanceRepository attendanceRepository;
     private final ClubRepository clubRepository;
     private final MemberRepository memberRepository;
+    private final MemberClubRepository memberClubRepository;
     private final AttendanceStatusRepository attendanceStatusRepository;
 
     public void createAttendance(AttendanceReqDTO.CreateAttendanceDTO reqDTO, Long memberId) {
-        Club club = clubRepository.findByIdAndUserId(reqDTO.clubId(), memberId)
+        // 동아리 ID와 멤버 ID를 기반으로 해당 멤버가 동아리에 속해 있는지 확인
+        boolean isMemberOfClub = memberClubRepository.existsByMemberIdAndClubId(memberId, reqDTO.clubId());
+        if (!isMemberOfClub) {
+            throw new AttendanceException(AttendanceErrorCode.ACCESS_DENIED);
+        }
+
+        Club club = clubRepository.findByIdAndMemberId(reqDTO.clubId(), memberId)
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ACCESS_DENIED));
 
         AttendanceNotice attendanceNotice = AttendanceConverter.toAttendanceNotice(reqDTO, club);
@@ -41,7 +49,7 @@ public class AttendanceCommandService {
         AttendanceNotice attendanceNotice = attendanceRepository.findById(attendanceId)
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ATTENDANCE_NOT_FOUND));
 
-        if (!memberRepository.existsByIdAndClubId(memberId, attendanceNotice.getClub().getId())) {
+        if (!memberClubRepository.existsByMemberIdAndClubId(memberId, attendanceNotice.getClub().getId())) {
             throw new AttendanceException(AttendanceErrorCode.ACCESS_DENIED);
         }
 
@@ -52,7 +60,7 @@ public class AttendanceCommandService {
         AttendanceNotice attendanceNotice = attendanceRepository.findById(attendanceId)
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ATTENDANCE_NOT_FOUND));
 
-        if (!memberRepository.existsByIdAndClubId(memberId, attendanceNotice.getClub().getId())) {
+        if (!memberClubRepository.existsByMemberIdAndClubId(memberId, attendanceNotice.getClub().getId())) {
             throw new AttendanceException(AttendanceErrorCode.ACCESS_DENIED);
         }
 
