@@ -36,4 +36,11 @@ public class AttendanceNotice extends BaseEntity {
 
     @Column(name = "date", nullable = false)
     private LocalDateTime date;
+
+    public void update(String title, String content, String target, LocalDateTime date) {
+        this.title = title;
+        this.content = content;
+        this.target = target;
+        this.date = date;
+    }
 }

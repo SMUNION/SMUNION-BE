@@ -57,4 +57,14 @@ public class AttendanceController {
         AttendanceResDTO.AttendanceDetailResponse response = attendanceQueryService.getAttendanceDetail(attendanceId, memberId);
         return CustomResponse.onSuccess(response);
     }
+
+    @PatchMapping("/{id}/{memberId}")
+    public CustomResponse<String> updateAttendance(
+            @PathVariable("id") Long attendanceId,
+            @RequestBody @Valid AttendanceReqDTO.UpdateAttendanceRequest request,
+            @PathVariable Long memberId
+    ) {
+        attendanceCommandService.updateAttendance(attendanceId, request, memberId);
+        return CustomResponse.onSuccess("출석 공지 수정 성공");
+    }
 }

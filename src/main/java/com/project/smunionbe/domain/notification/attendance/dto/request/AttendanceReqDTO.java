@@ -12,4 +12,12 @@ public class AttendanceReqDTO {
             LocalDateTime date
     ) {
     }
+
+    public record UpdateAttendanceRequest(
+            String title,
+            String content,
+            String target,
+            LocalDateTime date
+    ){
+    }
 }
