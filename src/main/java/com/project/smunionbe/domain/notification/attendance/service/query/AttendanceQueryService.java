@@ -32,7 +32,7 @@ public class AttendanceQueryService {
         // 2. 동아리 권한 검증
         Long clubId = attendanceNotice.getClub().getId();
         if (!memberRepository.existsByIdAndClubId(memberId, clubId)) {
-            throw new AccessDeniedException("해당 동아리에 접근할 수 없습니다.");
+            throw new AttendanceException(AttendanceErrorCode.ACCESS_DENIED);
         }
         // 3. 미출석 인원 조회
         List<Member> absentees = memberRepository.findAbsenteesByAttendanceId(attendanceId, clubId);
@@ -47,7 +47,7 @@ public class AttendanceQueryService {
     ) {
         // 1. 동아리 권한 검증
         if (!memberRepository.existsByIdAndClubId(memberId, clubId)) {
-            throw new AccessDeniedException("해당 동아리에 접근할 수 없습니다.");
+            throw new AttendanceException(AttendanceErrorCode.ACCESS_DENIED);
         }
         // 2. 출석 공지 목록 조회 (페이징 처리)
         List<AttendanceNotice> attendanceNotices = attendanceRepository.findAttendancesWithPagination(clubId, cursor, offset);
@@ -74,7 +74,7 @@ public class AttendanceQueryService {
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ATTENDANCE_NOT_FOUND));
         // 2. 동아리 권한 검증
         if (!memberRepository.existsByIdAndClubId(memberId, attendanceNotice.getClub().getId())) {
-            throw new AccessDeniedException("해당 동아리에 접근할 수 없습니다.");
+            throw new AttendanceException(AttendanceErrorCode.ACCESS_DENIED);
         }
         return AttendanceConverter.toDetailResponse(attendanceNotice);
     }

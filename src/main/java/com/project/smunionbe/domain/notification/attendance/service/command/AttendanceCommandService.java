@@ -6,9 +6,11 @@ import com.project.smunionbe.domain.member.repository.MemberRepository;
 import com.project.smunionbe.domain.notification.attendance.converter.AttendanceConverter;
 import com.project.smunionbe.domain.notification.attendance.dto.request.AttendanceReqDTO;
 import com.project.smunionbe.domain.notification.attendance.entity.AttendanceNotice;
+import com.project.smunionbe.domain.notification.attendance.entity.AttendanceStatus;
 import com.project.smunionbe.domain.notification.attendance.exception.AttendanceErrorCode;
 import com.project.smunionbe.domain.notification.attendance.exception.AttendanceException;
 import com.project.smunionbe.domain.notification.attendance.repository.AttendanceRepository;
+import com.project.smunionbe.domain.notification.attendance.repository.AttendanceStatusRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
@@ -24,10 +26,11 @@ public class AttendanceCommandService {
     private final AttendanceRepository attendanceRepository;
     private final ClubRepository clubRepository;
     private final MemberRepository memberRepository;
+    private final AttendanceStatusRepository attendanceStatusRepository;
 
     public void createAttendance(AttendanceReqDTO.CreateAttendanceDTO reqDTO, Long memberId) {
         Club club = clubRepository.findByIdAndUserId(reqDTO.clubId(), memberId)
-                .orElseThrow(() -> new RuntimeException("해당 동아리에 접근할 수 없습니다."));
+                .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ACCESS_DENIED));
 
         AttendanceNotice attendanceNotice = AttendanceConverter.toAttendanceNotice(reqDTO, club);
 
@@ -39,7 +42,7 @@ public class AttendanceCommandService {
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ATTENDANCE_NOT_FOUND));
 
         if (!memberRepository.existsByIdAndClubId(memberId, attendanceNotice.getClub().getId())) {
-            throw new AccessDeniedException("해당 동아리에 접근할 수 없습니다.");
+            throw new AttendanceException(AttendanceErrorCode.ACCESS_DENIED);
         }
 
         attendanceNotice.update(request.title(), request.content(), request.target(), request.date());
@@ -50,9 +53,25 @@ public class AttendanceCommandService {
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ATTENDANCE_NOT_FOUND));
 
         if (!memberRepository.existsByIdAndClubId(memberId, attendanceNotice.getClub().getId())) {
-            throw new AccessDeniedException("해당 동아리에 접근할 수 없습니다.");
+            throw new AttendanceException(AttendanceErrorCode.ACCESS_DENIED);
         }
 
         attendanceRepository.delete(attendanceNotice);
+    }
+
+    public void verifyAttendance(AttendanceReqDTO.VerifyAttendanceRequest request, Long memberClubId) {
+        // 1. 출석 공지 조회
+        AttendanceNotice attendanceNotice = attendanceRepository.findById(request.attendanceId())
+                .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ATTENDANCE_NOT_FOUND));
+
+        // 2. AttendanceStatus 조회 및 업데이트
+        AttendanceStatus status = attendanceStatusRepository.findByAttendanceAndMemberClub(attendanceNotice.getId(), memberClubId)
+                .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ATTENDANCE_STATUS_NOT_FOUND));
+
+        // 3. 출석 상태 업데이트
+        if (status.getIsPresent()) {
+            throw new AttendanceException(AttendanceErrorCode.ALREADY_PRESENT);
+        }
+        status.markPresent();
     }
 }

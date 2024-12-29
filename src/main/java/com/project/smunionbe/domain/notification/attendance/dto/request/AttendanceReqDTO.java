@@ -20,4 +20,9 @@ public class AttendanceReqDTO {
             LocalDateTime date
     ){
     }
+
+    public record VerifyAttendanceRequest(
+            Long attendanceId
+    ){
+    }
 }
