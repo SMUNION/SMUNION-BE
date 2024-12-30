@@ -93,16 +93,20 @@ public class AttendanceCommandService {
         attendanceRepository.delete(attendanceNotice);
     }
 
-    public void verifyAttendance(AttendanceReqDTO.VerifyAttendanceRequest request, Long memberClubId) {
-        // 1. 출석 공지 조회
+    public void verifyAttendance(AttendanceReqDTO.VerifyAttendanceRequest request, Long memberId) {
+        // 1. memberClubId 조회
+        Long memberClubId = memberClubRepository.findIdByMemberIdAndClubId(memberId, request.clubId())
+                .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.MEMBER_NOT_FOUND));
+
+        // 2. 출석 공지 조회
         AttendanceNotice attendanceNotice = attendanceRepository.findById(request.attendanceId())
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ATTENDANCE_NOT_FOUND));
 
-        // 2. AttendanceStatus 조회 및 업데이트
+        // 3. AttendanceStatus 조회 및 업데이트
         AttendanceStatus status = attendanceStatusRepository.findByAttendanceAndMemberClub(attendanceNotice.getId(), memberClubId)
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ATTENDANCE_STATUS_NOT_FOUND));
 
-        // 3. 출석 상태 업데이트
+        // 4. 출석 상태 업데이트
         if (status.getIsPresent()) {
             throw new AttendanceException(AttendanceErrorCode.ALREADY_PRESENT);
         }

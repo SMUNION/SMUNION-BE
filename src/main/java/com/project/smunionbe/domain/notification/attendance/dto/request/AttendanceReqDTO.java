@@ -23,7 +23,8 @@ public class AttendanceReqDTO {
     }
 
     public record VerifyAttendanceRequest(
-            Long attendanceId
+            Long attendanceId,
+            Long clubId
     ){
     }
 }
