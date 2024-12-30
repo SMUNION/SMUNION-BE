@@ -15,7 +15,7 @@ public class AttendanceStatus {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "attendance_id", nullable = false)
@@ -30,5 +30,11 @@ public class AttendanceStatus {
 
     @Column(name = "attendance_at")
     private LocalDateTime attendanceAt;
+
+    // 출석 상태 업데이트 메서드
+    public void markPresent() {
+        this.isPresent = true;
+        this.attendanceAt = LocalDateTime.now();
+    }
 }
 

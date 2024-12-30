@@ -1,6 +1,7 @@
 package com.project.smunionbe.domain.notification.attendance.entity;
 
 import com.project.smunionbe.domain.club.entity.Club;
+import com.project.smunionbe.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,11 +14,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @Table(name = "attendance_notice")
-public class AttendanceNotice {
+public class AttendanceNotice extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "club_id", nullable = false)
@@ -35,4 +36,11 @@ public class AttendanceNotice {
 
     @Column(name = "date", nullable = false)
     private LocalDateTime date;
+
+    public void update(String title, String content, String target, LocalDateTime date) {
+        this.title = title;
+        this.content = content;
+        this.target = target;
+        this.date = date;
+    }
 }
