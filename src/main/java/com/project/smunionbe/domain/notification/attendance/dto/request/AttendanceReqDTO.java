@@ -1,6 +1,7 @@
 package com.project.smunionbe.domain.notification.attendance.dto.request;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class AttendanceReqDTO {
 
@@ -8,7 +9,7 @@ public class AttendanceReqDTO {
             Long clubId,
             String title,
             String content,
-            String target,
+            List<String> targetDepartments, // 특정 부서들
             LocalDateTime date
     ) {
     }

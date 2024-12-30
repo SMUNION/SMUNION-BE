@@ -1,6 +1,7 @@
 package com.project.smunionbe.domain.member.entity;
 
 import com.project.smunionbe.domain.club.entity.Club;
+import com.project.smunionbe.domain.club.entity.Department;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,8 +25,10 @@ public class MemberClub {
     @JoinColumn(name = "club_id", nullable = false)
     private Club club;
 
-    @Column(name = "department_id", nullable = false)
-    private String departmentId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id", nullable = false)
+    private Department department;
+
 
     @Column(name = "nickname")
     private String nickname;

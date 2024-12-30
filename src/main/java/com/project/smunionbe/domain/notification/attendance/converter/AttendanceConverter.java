@@ -12,11 +12,16 @@ public class AttendanceConverter {
 
     public static AttendanceNotice toAttendanceNotice(AttendanceReqDTO.CreateAttendanceDTO reqDTO, Club club) {
 
+        // 타겟 부서가 없으면 "전체"로 설정
+        String target = (reqDTO.targetDepartments() == null || reqDTO.targetDepartments().isEmpty())
+                ? "전체"
+                : String.join(", ", reqDTO.targetDepartments()); // 부서 이름들을 콤마로 합치기
+
         return AttendanceNotice.builder()
                 .club(club)
                 .content(reqDTO.content())
                 .title(reqDTO.title())
-                .target(reqDTO.target())
+                .target(target) // 변경된 타겟 정보
                 .date(reqDTO.date())
                 .build();
     }
