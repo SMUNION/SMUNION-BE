@@ -11,6 +11,9 @@ import com.project.smunionbe.domain.notification.attendance.exception.Attendance
 import com.project.smunionbe.domain.notification.attendance.repository.AttendanceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,16 +48,28 @@ public class AttendanceQueryService {
     }
 
     public AttendanceResDTO.AttendanceListResponse getAttendances(
-            Long clubId, Long cursor, int offset, Long memberId
+            Long clubId, Long cursor, int size, Long memberId
     ) {
-        // 1. 동아리 권한 검증
+        // 동아리 권한 검증
         if (!memberClubRepository.existsByMemberIdAndClubId(memberId, clubId)) {
             throw new AttendanceException(AttendanceErrorCode.ACCESS_DENIED);
         }
-        // 2. 출석 공지 목록 조회 (페이징 처리)
-        List<AttendanceNotice> attendanceNotices = attendanceRepository.findAttendancesWithPagination(clubId, cursor, offset);
-        // 3. 데이터 변환
-        List<AttendanceResDTO.AttendanceResponse> attendanceDTOs = attendanceNotices.stream()
+
+        // 출석 공지 목록 조회 (페이징 처리)
+        Slice<AttendanceNotice> attendanceSlice = attendanceRepository.findByClubIdAndCursor(
+                clubId,
+                cursor,
+                PageRequest.of(0, size, Sort.by(Sort.Direction.DESC, "id"))
+        );
+
+        // 다음 커서 계산 (마지막 요소의 id)
+        Long nextCursor = attendanceSlice.hasNext()
+                ? attendanceSlice.getContent().get(attendanceSlice.getContent().size() - 1).getId()
+                : null;
+
+        // 데이터 변환
+        List<AttendanceResDTO.AttendanceResponse> attendanceDTOs = attendanceSlice.getContent()
+                .stream()
                 .map(notice -> new AttendanceResDTO.AttendanceResponse(
                         notice.getId(),
                         notice.getTitle(),
@@ -63,11 +78,8 @@ public class AttendanceQueryService {
                         notice.getCreatedAt()
                 ))
                 .toList();
-        // 4. hasNext 계산 (조회된 데이터가 offset보다 큰지 확인)
-        boolean hasNext = attendanceNotices.size() > offset;
-        // 5. 다음 페이지의 cursor 값 설정
-        Long nextCursor = hasNext ? attendanceNotices.get(attendanceNotices.size() - 1).getId() : null;
-        return new AttendanceResDTO.AttendanceListResponse(attendanceDTOs, hasNext, nextCursor);
+
+        return new AttendanceResDTO.AttendanceListResponse(attendanceDTOs, attendanceSlice.hasNext(), nextCursor);
     }
 
     public AttendanceResDTO.AttendanceDetailResponse getAttendanceDetail(Long attendanceId, Long memberId) {

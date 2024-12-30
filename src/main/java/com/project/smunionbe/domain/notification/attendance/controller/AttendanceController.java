@@ -59,17 +59,17 @@ public class AttendanceController {
     )
     @Parameters({
             @Parameter(name = "clubId", description = "조회 할 동아리의 id"),
-            @Parameter(name = "cursor", description = "커서 값, 처음이면 0"),
-            @Parameter(name = "offset", description = "한번에 가져올 데이터의 수")
+            @Parameter(name = "cursor", description = "커서 값, 처음이면 null"),
+            @Parameter(name = "size", description = "한번에 가져올 데이터의 수")
     })
     public CustomResponse<AttendanceResDTO.AttendanceListResponse> getAttendances(
             @RequestParam("clubId") Long clubId,
             @RequestParam(value = "cursor", required = false) Long cursor,
-            @RequestParam(value = "offset", defaultValue = "10") int offset,
+            @RequestParam(value = "size", defaultValue = "10") int size,
             @PathVariable Long memberId
     ) {
         AttendanceResDTO.AttendanceListResponse response =
-                attendanceQueryService.getAttendances(clubId, cursor, offset, memberId);
+                attendanceQueryService.getAttendances(clubId, cursor, size, memberId);
         return CustomResponse.onSuccess(response);
     }
 
