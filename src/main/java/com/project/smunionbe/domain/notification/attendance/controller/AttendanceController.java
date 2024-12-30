@@ -6,6 +6,8 @@ import com.project.smunionbe.domain.notification.attendance.service.command.Atte
 import com.project.smunionbe.domain.notification.attendance.service.query.AttendanceQueryService;
 import com.project.smunionbe.global.apiPayload.CustomResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +45,7 @@ public class AttendanceController {
             description = "특정 출석 공지에서 아직 출석하지 않은 멤버를 조회합니다."
     )
     public CustomResponse<AttendanceResDTO.AttendanceAbsenteesResponse> getAbsentees(
-            @RequestParam("id") Long attendanceId,
+            @RequestParam("attendanceId") Long attendanceId,
             @PathVariable Long memberId
     ) {
         AttendanceResDTO.AttendanceAbsenteesResponse response = attendanceQueryService.getAbsentees(attendanceId, memberId);
@@ -55,8 +57,13 @@ public class AttendanceController {
             summary = "출석 공지 목록 조회 API",
             description = "특정 동아리의 모든 출석 공지를 커서 기반 페이지네이션으로 조회합니다."
     )
+    @Parameters({
+            @Parameter(name = "clubId", description = "조회 할 동아리의 id"),
+            @Parameter(name = "cursor", description = "커서 값, 처음이면 0"),
+            @Parameter(name = "offset", description = "한번에 가져올 데이터의 수")
+    })
     public CustomResponse<AttendanceResDTO.AttendanceListResponse> getAttendances(
-            @RequestParam("id") Long clubId,
+            @RequestParam("clubId") Long clubId,
             @RequestParam(value = "cursor", required = false) Long cursor,
             @RequestParam(value = "offset", defaultValue = "10") int offset,
             @PathVariable Long memberId
@@ -66,26 +73,26 @@ public class AttendanceController {
         return CustomResponse.onSuccess(response);
     }
 
-    @GetMapping("/{id}/{memberId}")
+    @GetMapping("/{attendanceId}/{memberId}")
     @Operation(
             summary = "출석 공지 상세 조회 API",
             description = "특정 출석 공지의 상세 정보를 조회합니다."
     )
     public CustomResponse<AttendanceResDTO.AttendanceDetailResponse> getAttendanceDetail(
-            @PathVariable("id") Long attendanceId,
+            @PathVariable("attendanceId") Long attendanceId,
             @PathVariable Long memberId
     ) {
         AttendanceResDTO.AttendanceDetailResponse response = attendanceQueryService.getAttendanceDetail(attendanceId, memberId);
         return CustomResponse.onSuccess(response);
     }
 
-    @PatchMapping("/{id}/{memberId}")
+    @PatchMapping("/{attendanceId}/{memberId}")
     @Operation(
             summary = "출석 공지 수정 API",
             description = "기존 출석 공지의 내용을 수정합니다."
     )
     public CustomResponse<String> updateAttendance(
-            @PathVariable("id") Long attendanceId,
+            @PathVariable("attendanceId") Long attendanceId,
             @RequestBody @Valid AttendanceReqDTO.UpdateAttendanceRequest request,
             @PathVariable Long memberId
     ) {
@@ -93,13 +100,13 @@ public class AttendanceController {
         return CustomResponse.onSuccess("출석 공지 수정 성공");
     }
 
-    @DeleteMapping("/{id}/{memberId}")
+    @DeleteMapping("/{attendanceId}/{memberId}")
     @Operation(
             summary = "출석 공지 삭제 API",
             description = "특정 출석 공지를 삭제합니다."
     )
     public CustomResponse<String> deleteAttendance(
-            @PathVariable("id") Long attendanceId,
+            @PathVariable("attendanceId") Long attendanceId,
             @PathVariable Long memberId
     ) {
         attendanceCommandService.deleteAttendance(attendanceId, memberId);

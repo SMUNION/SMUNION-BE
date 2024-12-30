@@ -23,6 +23,7 @@ public class SecurityConfig {
 
     //인증이 필요하지 않은 url
     private final String[] allowedUrls = {
+            "/**", //JWT 개발 전까지 허용
             "/v3/api-docs/**",    // Allow access to OpenAPI docs
             "/swagger-ui/**",     // Allow access to Swagger UI
             "/swagger-ui.html" ,

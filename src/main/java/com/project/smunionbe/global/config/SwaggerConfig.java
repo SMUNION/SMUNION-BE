@@ -17,16 +17,16 @@ public class SwaggerConfig {
         Info info = new Info().title("SMUNION Project").description("멋쟁이 사자처럼 12기 2학기 프로젝트").version("0.0.1");
         String securityScheme = "JWT TOKEN";
         SecurityRequirement securityRequirement = new SecurityRequirement().addList(securityScheme);
-        Components components = new Components()
+        /*Components components = new Components()
                 .addSecuritySchemes(securityScheme, new SecurityScheme()
                         .name(securityScheme)
                         .type(SecurityScheme.Type.HTTP)
                         .scheme("Bearer")
-                        .bearerFormat("JWT"));
+                        .bearerFormat("JWT"));*/
         return new OpenAPI()
                 .info(info)
                 .addServersItem(new Server().url("/"))
                 .addSecurityItem(securityRequirement)
-                .components(components);
+                /*.components(components)*/;
     }
 }
