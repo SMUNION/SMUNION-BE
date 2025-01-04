@@ -56,4 +56,17 @@ public class FCMTokenService {
         redisUtil.save(redisKey, fcmToken, TOKEN_EXPIRATION_DAYS, TimeUnit.DAYS);
         log.info("[FcmTokenService] 사용자 {}의 FCM 토큰이 저장되었습니다.", email);
     }
+
+    // Redis에서 FCM 토큰 조회
+    public String getFcmToken(String email) {
+        String redisKey = generateRedisKey(email);
+        Object result = redisUtil.get(redisKey);
+
+        if (result instanceof String) {
+            return (String) result; // 명시적 타입 변환
+        } else {
+            log.warn("Redis에서 가져온 값이 String 타입이 아닙니다. 키: {}", redisKey);
+            return null; // 또는 빈 문자열 반환
+        }
+    }
 }

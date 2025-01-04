@@ -1,11 +1,9 @@
 package com.project.smunionbe.domain.notification.attendance.service.command;
 
 import com.project.smunionbe.domain.club.entity.Club;
-import com.project.smunionbe.domain.club.entity.Department;
 import com.project.smunionbe.domain.club.repository.ClubRepository;
 import com.project.smunionbe.domain.member.entity.MemberClub;
 import com.project.smunionbe.domain.member.repository.MemberClubRepository;
-import com.project.smunionbe.domain.member.repository.MemberRepository;
 import com.project.smunionbe.domain.notification.attendance.converter.AttendanceConverter;
 import com.project.smunionbe.domain.notification.attendance.dto.request.AttendanceReqDTO;
 import com.project.smunionbe.domain.notification.attendance.entity.AttendanceNotice;
@@ -14,9 +12,9 @@ import com.project.smunionbe.domain.notification.attendance.exception.Attendance
 import com.project.smunionbe.domain.notification.attendance.exception.AttendanceException;
 import com.project.smunionbe.domain.notification.attendance.repository.AttendanceRepository;
 import com.project.smunionbe.domain.notification.attendance.repository.AttendanceStatusRepository;
+import com.project.smunionbe.domain.notification.attendance.service.event.FCMNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,9 +28,9 @@ public class AttendanceCommandService {
 
     private final AttendanceRepository attendanceRepository;
     private final ClubRepository clubRepository;
-    private final MemberRepository memberRepository;
     private final MemberClubRepository memberClubRepository;
     private final AttendanceStatusRepository attendanceStatusRepository;
+    private final FCMNotificationService fcmNotificationService;
 
     public void createAttendance(AttendanceReqDTO.CreateAttendanceDTO request, Long memberId) {
         // 1. 권한 확인
@@ -69,6 +67,9 @@ public class AttendanceCommandService {
                         .build())
                 .toList();
         attendanceStatusRepository.saveAll(attendanceStatuses);
+
+        // 6. 푸시 알림 전송 (FCMNotificationService 사용)
+        fcmNotificationService.sendPushNotifications(attendanceNotice, membersInTargetDepartments);
     }
 
     public void updateAttendance(Long attendanceId, AttendanceReqDTO.UpdateAttendanceRequest request, Long memberId) {
