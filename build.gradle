@@ -42,6 +42,10 @@ dependencies {
     // Security
     implementation 'org.springframework.boot:spring-boot-starter-security'
 
+    // Thymeleaf-Spring Security
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+
     // Jwt
     implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
     implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
@@ -70,6 +74,13 @@ dependencies {
 
     // 이메일
     implementation 'com.sun.mail:jakarta.mail:2.0.1'
+
+    // Email-verify
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    //Spring Retry
+    implementation 'org.springframework.retry:spring-retry'
+    implementation 'org.springframework:spring-aspects'
 }
 
 tasks.named('test') {

@@ -16,4 +16,6 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
             "    WHERE a.attendanceNotice.id = :attendanceId AND a.isPresent = true" +
             ")")
     List<Member> findAbsenteesByAttendanceId(@Param("attendanceId") Long attendanceId, @Param("clubId") Long clubId);
+
+    Boolean existsByEmail(String email);
 }
