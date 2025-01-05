@@ -1,23 +1,31 @@
 package com.project.smunionbe.global.config;
 
+import com.project.smunionbe.domain.member.service.MemberDetailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.token.TokenService;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
+import static org.springframework.boot.autoconfigure.security.servlet.PathRequest.toH2Console;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final MemberDetailService memberService;
 
     private final AuthenticationConfiguration authenticationConfiguration;
 
@@ -31,12 +39,15 @@ public class SecurityConfig {
             "/api/v1/users/login" //로그인은 인증이 필요하지 않음
     };
 
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
-        return configuration.getAuthenticationManager();
+    @Bean //인증 관리자 관련 설정
+    public AuthenticationManager authenticationManager(HttpSecurity http, BCryptPasswordEncoder bCryptPasswordEncoder, UserDetailsService userDetailsService) throws Exception {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(memberService); //사용자 정보 서비스 설정
+        authProvider.setPasswordEncoder(bCryptPasswordEncoder);
+        return new ProviderManager(authProvider);
     }
 
-    @Bean
+    @Bean //패스워드 인코더로 사용할 빈 등록
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
@@ -71,8 +82,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         //위에서 정의했던 allowedUrls 들은 인증이 필요하지 않음 -> permitAll
                         .requestMatchers(allowedUrls).permitAll()
-                        .anyRequest().authenticated() // 그 외의 url 들은 인증이 필요함
-                );
+                        .anyRequest().authenticated()); // 그 외의 url 들은 인증이 필요함
 
         return http.build();
     }
