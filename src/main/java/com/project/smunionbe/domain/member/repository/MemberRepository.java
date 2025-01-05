@@ -18,7 +18,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
             ")")
     List<Member> findAbsenteesByAttendanceId(@Param("attendanceId") Long attendanceId, @Param("clubId") Long clubId);
 
-    boolean existsByEmail(String email);
-
     Optional<Member> findByEmail(String email); //이메일로 사용자의 정보를 가져옴
+
+    Boolean existsByEmail(String email);
 }
