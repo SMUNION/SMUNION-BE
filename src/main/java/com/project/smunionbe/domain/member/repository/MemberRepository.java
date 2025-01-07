@@ -17,5 +17,4 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
             ")")
     List<Member> findAbsenteesByAttendanceId(@Param("attendanceId") Long attendanceId, @Param("clubId") Long clubId);
 
-    boolean existsByEmail(String email);
 }
