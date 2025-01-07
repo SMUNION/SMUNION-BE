@@ -2,6 +2,7 @@ package com.project.smunionbe.domain.member.controller;
 
 import com.project.smunionbe.domain.member.dto.request.AccessTokenRequestDTO;
 import com.project.smunionbe.domain.member.dto.request.MemberRequestDTO;
+import com.project.smunionbe.domain.member.dto.response.AccessTokenResponseDTO;
 import com.project.smunionbe.domain.member.entity.Member;
 import com.project.smunionbe.domain.member.exception.AuthErrorCode;
 import com.project.smunionbe.domain.member.service.MemberService;
@@ -54,7 +55,7 @@ public class MemberController {
             summary = "로그인 API",
             description = "로그인 API입니다."
     )
-    public ResponseEntity<CustomResponse<Map<String, String>>> login(@RequestBody MemberRequestDTO.LoginMemberDTO request) {
+    public ResponseEntity<CustomResponse<AccessTokenResponseDTO.ReturnTokenDTO>> login(@RequestBody MemberRequestDTO.LoginMemberDTO request) {
         // 1. 회원 이메일과 비밀번호로 인증
         Member member = memberService.authenticate(request.email(), request.password());
 
@@ -62,14 +63,12 @@ public class MemberController {
         String accessToken = tokenService.createNewAccessTokenForMember(member);
         String refreshToken = tokenService.createNewRefreshTokenForMember(member);
 
-        // 3. 토큰들을 Map에 저장
-        Map<String, String> tokens = new HashMap<>();
-        tokens.put("accessToken", "Bearer " + accessToken);
-        tokens.put("refreshToken", refreshToken);
+        // 3. 토큰들을 DTO에 저장
+        AccessTokenResponseDTO.ReturnTokenDTO returnTokenDTO = new AccessTokenResponseDTO.ReturnTokenDTO("Bearer " + accessToken, refreshToken);
 
         // 4. 토큰 반환
         return ResponseEntity.status(HttpStatus.OK)
-                .body(CustomResponse.onSuccess(HttpStatus.OK, tokens));
+                .body(CustomResponse.onSuccess(HttpStatus.OK, returnTokenDTO));
     }
 
 

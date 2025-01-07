@@ -8,4 +8,10 @@ public class AccessTokenResponseDTO {
             String accessToken
     ) {
     }
+
+    public record ReturnTokenDTO(
+            String accessToken,
+            String refreshToken
+    ) {
+    }
 }
