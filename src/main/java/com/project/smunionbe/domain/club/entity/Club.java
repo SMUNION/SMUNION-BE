@@ -4,6 +4,7 @@ import com.project.smunionbe.domain.member.entity.MemberClub;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,4 +34,9 @@ public class Club {
 
     //스태프권한은 어떤식으로 해야할지 모르겠어서 일단 안했습니다.
 
+    public void update(String name, String description, String thumbnailUrl) {
+        this.name = name;
+        this.description = description;
+        this.thumbnailUrl = thumbnailUrl;
+    }
 }
