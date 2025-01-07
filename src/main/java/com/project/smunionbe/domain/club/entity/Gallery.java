@@ -24,4 +24,9 @@ public class Gallery {
 
     @Column(name = "thumbnail_url")
     private String thumbnailUrl;
+
+    public void update(String name, String thumbnailUrl) {
+        this.name = name;
+        this.thumbnailUrl = thumbnailUrl;
+    }
 }

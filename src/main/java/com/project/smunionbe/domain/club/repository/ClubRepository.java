@@ -13,4 +13,6 @@ public interface ClubRepository extends JpaRepository<Club, Long> {
     @Query("SELECT c FROM Club c JOIN c.memberClubs mc WHERE c.id = :clubId AND mc.member.id = :memberId")
     Optional<Club> findByIdAndMemberId(@Param("clubId") Long clubId, @Param("memberId") Long memberId);
 
+    boolean existsByid(Long Id);
+
 }
