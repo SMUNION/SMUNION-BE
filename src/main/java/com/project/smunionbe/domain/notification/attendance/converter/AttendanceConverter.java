@@ -4,6 +4,7 @@ import com.project.smunionbe.domain.club.entity.Club;
 import com.project.smunionbe.domain.notification.attendance.dto.request.AttendanceReqDTO;
 import com.project.smunionbe.domain.notification.attendance.dto.response.AttendanceResDTO;
 import com.project.smunionbe.domain.notification.attendance.entity.AttendanceNotice;
+import com.project.smunionbe.domain.notification.fcm.dto.request.FCMReqDTO;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -36,5 +37,14 @@ public class AttendanceConverter {
                 notice.getDate(),
                 notice.getCreatedAt()
         );
+    }
+
+    // FCM 알림 전송 DTO 생성 메서드
+    public static FCMReqDTO.FCMSendDTO toSendDTO(String fcmToken, AttendanceNotice attendanceNotice) {
+        return FCMReqDTO.FCMSendDTO.builder()
+                .fcmToken(fcmToken)
+                .title(attendanceNotice.getTitle())  // 공지 제목
+                .body(attendanceNotice.getContent()) // 공지 내용
+                .build();
     }
 }
