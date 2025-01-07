@@ -1,10 +1,5 @@
 package com.project.smunionbe.domain.member.dto.request;
 
-import lombok.Getter;
-import lombok.Setter;
-
-@Getter
-@Setter
 public class MemberRequestDTO {
 
     public record CreateMemberDTO(
@@ -13,5 +8,12 @@ public class MemberRequestDTO {
             String major,
             String name
     ) {
+    }
+
+    public record LoginMemberDTO(
+            String email,
+            String password
+    ) {
+
     }
 }

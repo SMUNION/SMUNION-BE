@@ -1,23 +1,40 @@
 package com.project.smunionbe.domain.member.controller;
 
+import com.project.smunionbe.domain.member.dto.request.AccessTokenRequestDTO;
 import com.project.smunionbe.domain.member.dto.request.MemberRequestDTO;
+import com.project.smunionbe.domain.member.entity.Member;
+import com.project.smunionbe.domain.member.exception.AuthErrorCode;
 import com.project.smunionbe.domain.member.service.MemberService;
+import com.project.smunionbe.domain.member.service.RefreshTokenService;
+import com.project.smunionbe.domain.member.service.TokenService;
 import com.project.smunionbe.global.apiPayload.CustomResponse;
+import com.project.smunionbe.global.config.jwt.TokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/users")
 @Tag(name = "회원 API", description = "-")
 public class MemberController {
+    private final TokenProvider tokenProvider;
     private final MemberService memberService;
+    private final TokenService tokenService;
+    private final RefreshTokenService refreshTokenService;
 
-    @PostMapping("/join")
+    @PostMapping("/signup")
     @Operation(
             summary = "회원가입 API",
             description = "회원가입 API 입니다."
@@ -27,5 +44,53 @@ public class MemberController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(CustomResponse.onSuccess(HttpStatus.CREATED, "회원가입이 완료되었습니다."));
     }
+
+
+
+
+    // 로그인 메서드
+    @PostMapping("/login")
+    @Operation(
+            summary = "로그인 API",
+            description = "로그인 API입니다."
+    )
+    public ResponseEntity<CustomResponse<Map<String, String>>> login(@RequestBody MemberRequestDTO.LoginMemberDTO request) {
+        // 1. 회원 이메일과 비밀번호로 인증
+        Member member = memberService.authenticate(request.email(), request.password());
+
+        // 2. 유효한 회원이라면 액세스 토큰 및 리프레시 토큰 생성
+        String accessToken = tokenService.createNewAccessTokenForMember(member);
+        String refreshToken = tokenService.createNewRefreshTokenForMember(member);
+
+        // 3. 토큰들을 Map에 저장
+        Map<String, String> tokens = new HashMap<>();
+        tokens.put("accessToken", "Bearer " + accessToken);
+        tokens.put("refreshToken", refreshToken);
+
+        // 4. 토큰 반환
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(CustomResponse.onSuccess(HttpStatus.OK, tokens));
+    }
+
+
+
+    @PostMapping("/logout")
+    @Operation(
+            summary = "로그아웃 API",
+            description = "로그아웃 API 입니다. accessToken과 함께 요청해주세요.(\"Bearer \"없이 토큰만 입력해주세요)"
+    )
+    public ResponseEntity<CustomResponse<String>> logout(HttpServletRequest request) {
+
+        String accessToken = tokenProvider.resolveToken(request);
+
+        // 로그아웃 처리
+        tokenService.logout(accessToken);
+
+        // 성공 응답 반환
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(CustomResponse.onSuccess(HttpStatus.OK, "로그아웃에 성공하였습니다."));
+    }
+
+
 
 }

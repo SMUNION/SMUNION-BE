@@ -3,6 +3,8 @@ package com.project.smunionbe.domain.member.service;
 import com.project.smunionbe.domain.member.converter.MemberConverter;
 import com.project.smunionbe.domain.member.dto.request.MemberRequestDTO;
 import com.project.smunionbe.domain.member.entity.Member;
+import com.project.smunionbe.domain.member.exception.AuthErrorCode;
+import com.project.smunionbe.domain.member.exception.AuthException;
 import com.project.smunionbe.domain.member.exception.MemberErrorCode;
 import com.project.smunionbe.domain.member.exception.MemberException;
 import com.project.smunionbe.domain.member.repository.MemberRepository;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 public class MemberService {
     private final MemberRepository memberRepository;
     private final MemberConverter memberConverter;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     public Long save(MemberRequestDTO.CreateMemberDTO dto) {
         // 1. 입력값 검증
@@ -22,7 +25,7 @@ public class MemberService {
         if (dto.email() == null || dto.email().isEmpty()) {
             throw new MemberException(MemberErrorCode.INVALID_MEMBER_EMAIL);
         }
-        if (!dto.email().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+        if (!dto.email().matches("^[A-Za-z0-9+_.-]+@sangmyung.kr")) { //상명대 이메일로만 가입 가능
             throw new MemberException(MemberErrorCode.INVALID_EMAIL_FORMAT);
         }
 
@@ -60,6 +63,26 @@ public class MemberService {
             throw new MemberException(MemberErrorCode.MEMBER_REGISTRATION_FAILED);
         }
     }
+
+    public Member findById(Long memberId) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new AuthException(AuthErrorCode.MEMBER_NOT_FOUND));
+    }
+
+
+    // 회원 인증 메서드
+    public Member authenticate(String email, String password) {
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new AuthException(AuthErrorCode.MEMBER_NOT_FOUND));
+
+        // 비밀번호 확인 (입력한 비밀번호와 DB에 저장된 비밀번호 비교)
+        if (!passwordEncoder.matches(password, member.getPassword())) {
+            throw new AuthException(AuthErrorCode.INVALID_MEMBER_PASSWORD);
+        }
+
+        return member;
+    }
+
 
 
 }
