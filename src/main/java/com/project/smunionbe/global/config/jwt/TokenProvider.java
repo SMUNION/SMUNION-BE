@@ -1,9 +1,15 @@
 package com.project.smunionbe.global.config.jwt;
 
 import com.project.smunionbe.domain.member.entity.Member;
+
 import com.project.smunionbe.domain.member.exception.AuthErrorCode;
 import com.project.smunionbe.domain.member.exception.AuthException;
-import io.jsonwebtoken.*;
+import com.project.smunionbe.domain.member.repository.MemberRepository;
+import com.project.smunionbe.domain.member.security.CustomUserDetails;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Header;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,6 +28,7 @@ import java.util.Set;
 @Service
 public class TokenProvider {
     private final JwtProperties jwtProperties;
+    private final MemberRepository memberRepository;
 
     public String generateToken(Member member, Duration expiredAt) {
         Date now = new Date();
@@ -61,10 +68,13 @@ public class TokenProvider {
     //토큰 기반으로 인증 정보를 가져오는 메서드
     public Authentication getAuthentication(String token) {
         Claims claims = getClaims(token);
-        Set<SimpleGrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")); //추후 권한 변경
+        Long memberId = claims.get("id", Long.class);
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("유효하지 않은 사용자 ID"));
 
-        return new UsernamePasswordAuthenticationToken(new org.springframework.security.core.userdetails.User(claims.getSubject(), "", authorities), token, authorities);
-        //비밀번호는 JWT 인증에서 필요하지 않으므로 빈 값 ""
+        // CustomUserDetails로 인증 정보 생성
+        CustomUserDetails userDetails = new CustomUserDetails(member);
+        return new UsernamePasswordAuthenticationToken(userDetails, token, userDetails.getAuthorities());
     }
 
 

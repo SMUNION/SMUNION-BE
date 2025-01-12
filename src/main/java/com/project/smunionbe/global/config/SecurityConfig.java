@@ -2,6 +2,8 @@ package com.project.smunionbe.global.config;
 
 import com.project.smunionbe.domain.member.repository.RefreshTokenRepository;
 import com.project.smunionbe.domain.member.security.CustomUserDetailsService;
+import com.project.smunionbe.global.config.jwt.TokenAuthenticationFilter;
+import com.project.smunionbe.global.config.jwt.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +18,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -25,6 +28,8 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
 
     private final AuthenticationConfiguration authenticationConfiguration;
+
+    private final TokenProvider tokenProvider;
 
     //인증이 필요하지 않은 url
     private final String[] allowedUrls = {
@@ -81,6 +86,10 @@ public class SecurityConfig {
                         //위에서 정의했던 allowedUrls 들은 인증이 필요하지 않음 -> permitAll
                         .requestMatchers(allowedUrls).permitAll()
                         .anyRequest().authenticated()); // 그 외의 url 들은 인증이 필요함
+
+        http
+                .addFilterBefore(new TokenAuthenticationFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class);
+
 
         return http.build();
     }
