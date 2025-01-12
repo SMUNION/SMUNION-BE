@@ -11,6 +11,7 @@ import com.project.smunionbe.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
@@ -19,6 +20,7 @@ public class MemberService {
     private final MemberConverter memberConverter;
     private final BCryptPasswordEncoder passwordEncoder;
 
+    @Transactional
     public Long save(MemberRequestDTO.CreateMemberDTO dto) {
         // 1. 입력값 검증
         // 이메일 검사
@@ -64,6 +66,7 @@ public class MemberService {
         }
     }
 
+    @Transactional
     public Member findById(Long memberId) {
         return memberRepository.findById(memberId)
                 .orElseThrow(() -> new AuthException(AuthErrorCode.MEMBER_NOT_FOUND));
@@ -71,6 +74,7 @@ public class MemberService {
 
 
     // 회원 인증 메서드
+    @Transactional
     public Member authenticate(String email, String password) {
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new AuthException(AuthErrorCode.MEMBER_NOT_FOUND));

@@ -1,10 +1,9 @@
 package com.project.smunionbe.global.config.jwt;
 
 import com.project.smunionbe.domain.member.entity.Member;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Header;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import com.project.smunionbe.domain.member.exception.AuthErrorCode;
+import com.project.smunionbe.domain.member.exception.AuthException;
+import io.jsonwebtoken.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -71,8 +70,22 @@ public class TokenProvider {
 
     //토큰 기반으로 유저 ID를 가져오는 메서드
     public Long getUserId(String token) {
-        Claims claims = getClaims(token);
-        return claims.get("id", Long.class);
+        try {
+            Claims claims = getClaims(token);
+            return claims.get("id", Long.class);
+        } catch (ExpiredJwtException e) {
+            // 토큰 만료
+            throw new AuthException(AuthErrorCode.JWT_TOKEN_EXPIRED);
+        } catch (MalformedJwtException | UnsupportedJwtException | IllegalArgumentException e) {
+            // 잘못된 형식의 토큰
+            throw new AuthException(AuthErrorCode.JWT_TOKEN_MALFORMED);
+        } catch (SignatureException e) {
+            // 서명이 유효하지 않은 경우
+            throw new AuthException(AuthErrorCode.JWT_SIGNATURE_INVALID);
+        } catch (Exception e) {
+            // 그 외 일반적인 JWT 인증 실패
+            throw new AuthException(AuthErrorCode.JWT_AUTHENTICATION_FAILED);
+        }
     }
 
     //클레임을 조회해서 반환하는 메서드
