@@ -49,11 +49,12 @@ public class MemberClubConverter {
   
      public static MemberClub toMemberClub(Member member, Club club, Department department, String nickName, Boolean isStaff) {
 
-        return MemberClub.builder()
-                .member(member)
-                .club(club)
-                .department(department)
-                .nickname(nickName)
-                .is_Staff(isStaff)
-                .build();
+         return MemberClub.builder()
+                 .member(member)
+                 .club(club)
+                 .department(department)
+                 .nickname(nickName)
+                 .is_Staff(isStaff)
+                 .build();
+     }
 }
