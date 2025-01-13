@@ -9,31 +9,18 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
-@Table(name = "article")
-public class Article {
-
+@Table(name = "likes")
+public class Likes {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne
+    @JoinColumn(name = "article_id")
+    private Article article;
+
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_club_id", nullable = false)
     private MemberClub memberClub;
-
-    @Column(name = "title", nullable = false)
-    private String title;
-
-    @Lob
-    @Column(name = "content", nullable = false)
-    private String content;
-
-    @Column(name = "department", nullable = false)
-    private String department;
-
-    @Column(name = "member_name", nullable = false)
-    private String memberName;
-
-    @Column(name = "like_num", nullable = false)
-    @Builder.Default
-    private Integer LikeNum = 0;
 }

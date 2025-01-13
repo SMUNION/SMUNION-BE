@@ -5,6 +5,7 @@ import com.project.smunionbe.domain.member.dto.request.MemberRequestDTO;
 import com.project.smunionbe.domain.member.dto.response.AccessTokenResponseDTO;
 import com.project.smunionbe.domain.member.entity.Member;
 import com.project.smunionbe.domain.member.exception.AuthErrorCode;
+import com.project.smunionbe.domain.member.security.CustomUserDetails;
 import com.project.smunionbe.domain.member.service.MemberService;
 import com.project.smunionbe.domain.member.service.RefreshTokenService;
 import com.project.smunionbe.domain.member.service.TokenService;
@@ -18,6 +19,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
@@ -89,6 +91,7 @@ public class MemberController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(CustomResponse.onSuccess(HttpStatus.OK, "로그아웃에 성공하였습니다."));
     }
+
 
 
 
