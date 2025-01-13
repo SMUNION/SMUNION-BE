@@ -20,5 +20,7 @@ public interface MemberClubRepository extends JpaRepository<MemberClub, Long> {
     // 전체 부서 멤버 조회
     List<MemberClub> findAllByClubId(Long clubId);
 
+    MemberClub findByMemberIdAndClubId(Long memberId, Long clubId);
+
     boolean existsByMemberIdAndClubId(Long memberId, Long clubId);
 }

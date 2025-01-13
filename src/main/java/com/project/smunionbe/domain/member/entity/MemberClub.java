@@ -29,8 +29,10 @@ public class MemberClub {
     @JoinColumn(name = "department_id", nullable = false)
     private Department department;
 
-
     @Column(name = "nickname")
     private String nickname;
+
+    @Column(name = "is_Staff")
+    private boolean is_Staff;
 }
 
