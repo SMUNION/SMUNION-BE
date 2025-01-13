@@ -1,7 +1,7 @@
 package com.project.smunionbe.global.config;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -12,9 +12,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@Configuration
 public class CorsConfig implements WebMvcConfigurer {
 
+    @Bean
     public static CorsConfigurationSource apiConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
@@ -27,8 +28,7 @@ public class CorsConfig implements WebMvcConfigurer {
         allowedOriginPatterns.add("http://localhost:3453");
         allowedOriginPatterns.add("http://localhost:8800");
         allowedOriginPatterns.add("https://smunion.shop");
-
-        configuration.setAllowedOrigins(allowedOriginPatterns);
+        allowedOriginPatterns.add("https://www.smunion.shop");
 
         //허용하는 HTTP METHOD 지정
         ArrayList<String> allowedHttpMethods = new ArrayList<>();
@@ -42,7 +42,6 @@ public class CorsConfig implements WebMvcConfigurer {
         configuration.setAllowedMethods(allowedHttpMethods);
 
         configuration.setAllowedHeaders(Collections.singletonList("*"));
-        configuration.setAllowedHeaders(List.of(HttpHeaders.AUTHORIZATION, HttpHeaders.CONTENT_TYPE));
         configuration.setAllowCredentials(true); //credential TRUE
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
