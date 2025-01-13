@@ -20,7 +20,12 @@ public interface MemberClubRepository extends JpaRepository<MemberClub, Long> {
     // 전체 부서 멤버 조회
     List<MemberClub> findAllByClubId(Long clubId);
 
+
     MemberClub findByMemberIdAndClubId(Long memberId, Long clubId);
+
+    // 멤버가 가입되어 있는 동아리 전체 조회
+    List<MemberClub> findAllByMemberId(Long memberId);
+
 
     boolean existsByMemberIdAndClubId(Long memberId, Long clubId);
 }
