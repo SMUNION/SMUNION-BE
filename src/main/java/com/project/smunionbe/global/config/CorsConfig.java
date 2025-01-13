@@ -26,7 +26,7 @@ public class CorsConfig implements WebMvcConfigurer {
         allowedOriginPatterns.add("http://localhost:5501");
         allowedOriginPatterns.add("http://localhost:3453");
         allowedOriginPatterns.add("http://localhost:8800");
-        allowedOriginPatterns.add("http://smunion.shop");
+        allowedOriginPatterns.add("https://smunion.shop");
 
         configuration.setAllowedOrigins(allowedOriginPatterns);
 
