@@ -56,4 +56,5 @@ public class MemberClubConverter {
                 .nickname(nickName)
                 .is_Staff(isStaff)
                 .build();
+    }
 }
