@@ -11,7 +11,16 @@ public record ClubReqDTO() {
     public record UpdateClubRequest(
             String name,
             String description,
-            String thumbnailUrl
+            String thumbnailUrl,
+            Long clubId
+    ){
+    }
+
+    public record ApproveClubRequest(
+            Long departmentId,
+            String code,
+            String nickname,
+            Boolean isStaff
     ){
     }
 

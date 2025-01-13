@@ -66,4 +66,16 @@ public class DepartmentController {
         departmentCommandService.deleteDepartment(departmentId, memberId);
         return CustomResponse.onSuccess("부서가 성공적으로 삭제되었습니다.");
     }
+
+    @PostMapping("/{departmentId}")
+    @Operation(
+            summary = "승인 코드 생성 API",
+            description = "초대에 필요한 승인 코드를 생성합니다."
+    )
+    public CustomResponse<String> createInviteCode(
+            @PathVariable String departmentId
+    ) {
+        String code = departmentCommandService.createInviteCode(departmentId);
+        return CustomResponse.onSuccess(code);
+    }
 }
