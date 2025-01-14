@@ -9,6 +9,7 @@ import com.project.smunionbe.domain.notification.vote.exception.VoteErrorCode;
 import com.project.smunionbe.domain.notification.vote.exception.VoteException;
 import com.project.smunionbe.domain.notification.vote.repository.VoteItemRepository;
 import com.project.smunionbe.domain.notification.vote.repository.VoteNoticeRepository;
+import com.project.smunionbe.domain.notification.vote.repository.VoteStatusRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -25,6 +26,7 @@ public class VoteQueryService {
 
     private final VoteNoticeRepository voteNoticeRepository;
     private final VoteItemRepository voteItemRepository;
+    private final VoteStatusRepository voteStatusRepository;
     private final MemberClubRepository memberClubRepository;
 
     public VoteResDTO.VoteListResponse getVotes(Long cursor, int size, Long selectedMemberClubId) {
@@ -93,5 +95,39 @@ public class VoteQueryService {
                 options,
                 voteNotice.getCreatedAt()
         );
+    }
+
+    public VoteResDTO.VoteResultsResponse getVoteResults(Long voteId, Long selectedMemberClubId) {
+        // 1. MemberClub 조회
+        MemberClub memberClub = memberClubRepository.findById(selectedMemberClubId)
+                .orElseThrow(() -> new VoteException(VoteErrorCode.MEMBER_NOT_FOUND));
+
+        // 2. 투표 공지 조회
+        VoteNotice voteNotice = voteNoticeRepository.findById(voteId)
+                .orElseThrow(() -> new VoteException(VoteErrorCode.VOTE_NOT_FOUND));
+
+        // 3. 권한 검증
+        if (!memberClub.getClub().equals(voteNotice.getClub())) {
+            throw new VoteException(VoteErrorCode.ACCESS_DENIED);
+        }
+
+        // 4. 투표 항목 및 투표 상태 조회
+        List<VoteItem> voteItems = voteItemRepository.findAllByVoteNoticeId(voteId);
+
+        // 투표 결과 계산
+        long totalVotes = voteStatusRepository.countByVoteNoticeId(voteId);
+
+        List<VoteResDTO.VoteResult> results = voteItems.stream().map(item -> {
+            long votesForItem = voteStatusRepository.countByVoteItemId(item.getId());
+            int percentage = totalVotes > 0 ? (int) ((votesForItem * 100) / totalVotes) : 0;
+            return new VoteResDTO.VoteResult(
+                    item.getId(),
+                    item.getName(),
+                    votesForItem,
+                    percentage
+            );
+        }).toList();
+
+        return new VoteResDTO.VoteResultsResponse(results);
     }
 }

@@ -40,4 +40,15 @@ public class VoteResDTO {
             LocalDateTime createdAt
     ) {
     }
+
+    public record VoteResultsResponse(
+            List<VoteResult> results
+    ) {}
+
+    public record VoteResult(
+            Long voteOptionId,
+            String optionName,
+            long votes,
+            int percentage
+    ) {}
 }

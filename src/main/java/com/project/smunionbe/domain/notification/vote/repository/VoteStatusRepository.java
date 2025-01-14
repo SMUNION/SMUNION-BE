@@ -15,4 +15,10 @@ public interface VoteStatusRepository extends JpaRepository<VoteStatus, Long> {
             "AND vs.memberClub.id = :memberClubId")
     boolean existsByVoteNoticeIdAndMemberClubId(@Param("voteNoticeId") Long voteNoticeId,
                                                 @Param("memberClubId") Long memberClubId);
+
+    // 특정 투표 공지의 전체 투표 수
+    long countByVoteNoticeId(Long voteNoticeId);
+
+    // 특정 투표 항목에 대한 투표 수
+    long countByVoteItemId(Long voteItemId);
 }
