@@ -15,4 +15,9 @@ public class VoteReqDTO {
             List<String> options // 투표 항목 리스트
     ) {
     }
+
+    public record ParticipateVoteDTO(
+            List<Long> voteOptionIds // 선택한 항목 ID 리스트
+    ) {
+    }
 }

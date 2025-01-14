@@ -25,7 +25,7 @@ public class VoteStatus {
     private VoteItem voteItem;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_club_id", nullable = false)
+    @JoinColumn(name = "member_club_id")
     private MemberClub memberClub;
 }
 

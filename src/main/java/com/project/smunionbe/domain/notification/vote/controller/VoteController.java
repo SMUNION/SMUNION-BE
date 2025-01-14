@@ -8,6 +8,7 @@ import com.project.smunionbe.global.apiPayload.CustomResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,5 +36,20 @@ public class VoteController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(CustomResponse.onSuccess(HttpStatus.CREATED, "투표 공지가 성공적으로 생성되었습니다."));
+    }
+
+    @PostMapping("/{id}/participate")
+    @Operation(summary = "투표 참여 API", description = "해당 투표에 참여합니다.")
+    public ResponseEntity<CustomResponse<String>> participateVote(
+            @PathVariable Long id,
+            @RequestBody @Valid VoteReqDTO.ParticipateVoteDTO reqDTO,
+            @AuthenticationPrincipal CustomUserDetails authMember,
+            HttpSession session) {
+
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, authMember.getMember().getId());
+        voteCommandService.participateVote(id, reqDTO, selectedMemberClubId);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(CustomResponse.onSuccess(HttpStatus.CREATED, "투표가 성공적으로 등록되었습니다."));
     }
 }
