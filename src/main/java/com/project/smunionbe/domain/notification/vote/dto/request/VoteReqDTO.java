@@ -1,0 +1,18 @@
+package com.project.smunionbe.domain.notification.vote.dto.request;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+public class VoteReqDTO {
+
+    public record CreateVoteDTO(
+            String title, // 투표 제목
+            String description, // 투표 내용
+            List<String> targetDepartments, // 특정 부서들
+            LocalDateTime date, // 투표 마감일
+            boolean allowDuplicate, // 중복 가능 여부
+            boolean anonymous, // 익명 여부
+            List<String> options // 투표 항목 리스트
+    ) {
+    }
+}

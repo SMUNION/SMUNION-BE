@@ -26,6 +26,11 @@ public interface MemberClubRepository extends JpaRepository<MemberClub, Long> {
     // 멤버가 가입되어 있는 동아리 전체 조회
     List<MemberClub> findAllByMemberId(Long memberId);
 
+    // 특정 동아리의 특정 타겟 부서의 멤버 조회 (전체일 경우 모든 멤버 조회)
+    @Query("SELECT mc FROM MemberClub mc " +
+            "WHERE mc.club.id = :clubId " +
+            "AND (:target = '전체' OR mc.department.name = :target)")
+    List<MemberClub> findAllByClubIdAndTarget(@Param("target") String target, @Param("clubId") Long clubId);
 
     boolean existsByMemberIdAndClubId(Long memberId, Long clubId);
 }
