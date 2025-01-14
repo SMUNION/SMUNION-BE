@@ -103,4 +103,18 @@ public class VoteController {
 
         return CustomResponse.onSuccess(response);
     }
+
+    @GetMapping("/{id}/absentees")
+    @Operation(summary = "미참여 멤버 조회 API", description = "특정 투표 공지에 대해 투표하지 않은 멤버를 조회합니다.")
+    @Parameter(name = "id", description = "투표 공지 ID", required = true)
+    public CustomResponse<VoteResDTO.VoteAbsenteesResponse> getAbsentees(
+            @PathVariable("id") Long voteId,
+            @AuthenticationPrincipal CustomUserDetails authMember,
+            HttpSession session) {
+
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, authMember.getMember().getId());
+        VoteResDTO.VoteAbsenteesResponse response = voteQueryService.getAbsentees(voteId, selectedMemberClubId);
+
+        return CustomResponse.onSuccess(response);
+    }
 }

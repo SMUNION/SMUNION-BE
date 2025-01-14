@@ -14,6 +14,10 @@ public interface MemberClubRepository extends JpaRepository<MemberClub, Long> {
     @Query("SELECT mc FROM MemberClub mc WHERE mc.club.id = :clubId AND mc.department.name IN :targetDepartments")
     List<MemberClub> findAllByClubIdAndDepartments(@Param("clubId") Long clubId, @Param("targetDepartments") List<String> targetDepartments);
 
+    // 특정 동아리 및 부서 이름으로 멤버 조회
+    @Query("SELECT mc FROM MemberClub mc WHERE mc.club.id = :clubId AND mc.department.name IN :departmentNames")
+    List<MemberClub> findByClubIdAndDepartmentNames(@Param("clubId") Long clubId, @Param("departmentNames") List<String> departmentNames);
+
     @Query("SELECT mc.id FROM MemberClub mc WHERE mc.member.id = :memberId AND mc.club.id = :clubId")
     Optional<Long> findIdByMemberIdAndClubId(@Param("memberId") Long memberId, @Param("clubId") Long clubId);
 

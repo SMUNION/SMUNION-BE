@@ -130,4 +130,52 @@ public class VoteQueryService {
 
         return new VoteResDTO.VoteResultsResponse(results);
     }
+
+    public VoteResDTO.VoteAbsenteesResponse getAbsentees(Long voteId, Long selectedMemberClubId) {
+        // 1. MemberClub 조회
+        MemberClub memberClub = memberClubRepository.findById(selectedMemberClubId)
+                .orElseThrow(() -> new VoteException(VoteErrorCode.MEMBER_NOT_FOUND));
+
+        // 2. 투표 공지 조회
+        VoteNotice voteNotice = voteNoticeRepository.findById(voteId)
+                .orElseThrow(() -> new VoteException(VoteErrorCode.VOTE_NOT_FOUND));
+
+        // 3. 익명 투표 여부 확인
+        if (voteNotice.isAnonymous()) {
+            throw new VoteException(VoteErrorCode.ANONYMOUS_VOTE_CANNOT_FETCH_ABSENTEES);
+        }
+
+        // 4. 권한 검증
+        if (!memberClub.getClub().equals(voteNotice.getClub())) {
+            throw new VoteException(VoteErrorCode.ACCESS_DENIED);
+        }
+
+        // 5. 부서 필터링
+        List<MemberClub> targetMembers;
+        String target = voteNotice.getTarget(); // 예: "1번 부서, 2번 부서" 또는 "전체"
+        if ("전체".equals(target)) {
+            targetMembers = memberClubRepository.findAllByClubId(voteNotice.getClub().getId());
+        } else {
+            List<String> allowedDepartments = List.of(target.split(", "));
+            targetMembers = memberClubRepository.findByClubIdAndDepartmentNames(
+                    voteNotice.getClub().getId(),
+                    allowedDepartments
+            );
+        }
+
+        // 6. 미참여 멤버 필터링
+        List<MemberClub> absentees = targetMembers.stream()
+                .filter(member -> !voteStatusRepository.existsByVoteNoticeIdAndMemberClubId(voteId, member.getId()))
+                .toList();
+
+        // 7. DTO 변환
+        List<VoteResDTO.Absentee> absenteeDTOs = absentees.stream()
+                .map(absentee -> new VoteResDTO.Absentee(
+                        absentee.getMember().getId(),
+                        absentee.getNickname()
+                ))
+                .toList();
+
+        return new VoteResDTO.VoteAbsenteesResponse(absenteeDTOs);
+    }
 }

@@ -17,6 +17,7 @@ public enum VoteErrorCode implements BaseErrorCode {
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "Vote403_1", "투표 공지를 생성할 권한이 없습니다."),
 
     // 투표 공지 관련 에러
+    ANONYMOUS_VOTE_CANNOT_FETCH_ABSENTEES(HttpStatus.BAD_REQUEST, "Vote400_2", "익명 투표에서는 미참여 멤버를 조회할 수 없습니다."),
     VOTE_NOT_FOUND(HttpStatus.NOT_FOUND, "Vote404_3", "투표 공지를 찾을 수 없습니다."),
     INVALID_VOTE_ITEM(HttpStatus.BAD_REQUEST, "Vote400_1", "잘못된 투표 항목입니다."),
     DUPLICATE_VOTE_NOT_ALLOWED(HttpStatus.CONFLICT, "Vote409_1", "중복 투표는 허용되지 않습니다."),

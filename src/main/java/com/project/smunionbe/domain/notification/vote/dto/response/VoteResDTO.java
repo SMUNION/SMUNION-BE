@@ -51,4 +51,13 @@ public class VoteResDTO {
             long votes,
             int percentage
     ) {}
+
+    public record VoteAbsenteesResponse(
+            List<Absentee> absentees
+    ) {}
+
+    public record Absentee(
+            Long memberId,
+            String nickname
+    ) {}
 }
