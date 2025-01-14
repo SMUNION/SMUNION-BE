@@ -5,6 +5,7 @@ import com.project.smunionbe.global.config.jwt.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -75,9 +76,10 @@ public class SecurityConfig {
         // 경로별 인가
         http
                 .authorizeHttpRequests(auth -> auth
-                        //위에서 정의했던 allowedUrls 들은 인증이 필요하지 않음 -> permitAll
+                        // OPTIONS 요청 및 인증 필요 없는 URL 허용
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(allowedUrls).permitAll()
-                        .anyRequest().authenticated()); // 그 외의 url 들은 인증이 필요함
+                        .anyRequest().authenticated()); // 그 외 모든 요청은 인증 필요
 
         http
                 .addFilterBefore(new TokenAuthenticationFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class);
