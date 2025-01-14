@@ -1,6 +1,7 @@
 package com.project.smunionbe.domain.notification.vote.entity;
 
 import com.project.smunionbe.domain.club.entity.Club;
+import com.project.smunionbe.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @Table(name = "vote_notice")
-public class VoteNotice {
+public class VoteNotice extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

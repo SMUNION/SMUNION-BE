@@ -33,4 +33,6 @@ public interface MemberClubRepository extends JpaRepository<MemberClub, Long> {
     List<MemberClub> findAllByClubIdAndTarget(@Param("target") String target, @Param("clubId") Long clubId);
 
     boolean existsByMemberIdAndClubId(Long memberId, Long clubId);
+
+    boolean existsByClubId(Long clubId);
 }
