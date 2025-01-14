@@ -1,5 +1,6 @@
 package com.project.smunionbe.domain.notification.vote.service.query;
 
+import com.project.smunionbe.domain.member.entity.MemberClub;
 import com.project.smunionbe.domain.member.repository.MemberClubRepository;
 import com.project.smunionbe.domain.notification.vote.dto.response.VoteResDTO;
 import com.project.smunionbe.domain.notification.vote.entity.VoteItem;
@@ -26,27 +27,28 @@ public class VoteQueryService {
     private final VoteItemRepository voteItemRepository;
     private final MemberClubRepository memberClubRepository;
 
-    public VoteResDTO.VoteListResponse getVotes(Long clubId, Long cursor, int offset) {
-        // 1. 동아리 존재 확인
-        if (!memberClubRepository.existsByClubId(clubId)) {
-            throw new VoteException(VoteErrorCode.CLUB_NOT_FOUND);
-        }
+    public VoteResDTO.VoteListResponse getVotes(Long cursor, int size, Long selectedMemberClubId) {
+        // 1. MemberClub 조회
+        MemberClub memberClub = memberClubRepository.findById(selectedMemberClubId)
+                .orElseThrow(() -> new VoteException(VoteErrorCode.MEMBER_NOT_FOUND));
 
-        // 2. 커서 기반 페이징 처리
+        // 2. 동아리 ID 가져오기
+        Long clubId = memberClub.getClub().getId();
+
+        // 3. 투표 공지 목록 조회 (커서 기반 페이지네이션)
         Slice<VoteNotice> voteSlice = voteNoticeRepository.findByClubIdAndCursor(
                 clubId,
                 cursor,
-                PageRequest.of(0, offset, Sort.by(Sort.Direction.DESC, "id"))
+                PageRequest.of(0, size, Sort.by(Sort.Direction.DESC, "id"))
         );
 
-        // 3. 다음 커서 계산
+        // 4. 다음 커서 계산
         Long nextCursor = voteSlice.hasNext()
                 ? voteSlice.getContent().get(voteSlice.getContent().size() - 1).getId()
                 : null;
 
-        // 4. 데이터 변환
-        List<VoteResDTO.VoteResponse> votes = voteSlice.getContent()
-                .stream()
+        // 5. 응답 데이터 생성
+        List<VoteResDTO.VoteResponse> votes = voteSlice.getContent().stream()
                 .map(vote -> new VoteResDTO.VoteResponse(
                         vote.getId(),
                         vote.getTitle(),
@@ -61,15 +63,22 @@ public class VoteQueryService {
         return new VoteResDTO.VoteListResponse(votes, voteSlice.hasNext(), nextCursor);
     }
 
-    public VoteResDTO.VoteDetailResponse getVoteDetail(Long voteId) {
-        // 1. 투표 공지 조회
+    public VoteResDTO.VoteDetailResponse getVoteDetail(Long voteId, Long selectedMemberClubId) {
+        // 1. MemberClub 조회
+        MemberClub memberClub = memberClubRepository.findById(selectedMemberClubId)
+                .orElseThrow(() -> new VoteException(VoteErrorCode.MEMBER_NOT_FOUND));
+
+        // 2. 투표 공지 조회
         VoteNotice voteNotice = voteNoticeRepository.findById(voteId)
                 .orElseThrow(() -> new VoteException(VoteErrorCode.VOTE_NOT_FOUND));
 
-        // 2. 투표 항목 조회
-        List<VoteItem> voteItems = voteItemRepository.findAllByVoteNoticeId(voteId);
+        // 3. 동아리 권한 확인
+        if (!memberClub.getClub().equals(voteNotice.getClub())) {
+            throw new VoteException(VoteErrorCode.ACCESS_DENIED);
+        }
 
-        // 3. 응답 데이터 생성
+        // 4. 투표 항목 조회
+        List<VoteItem> voteItems = voteItemRepository.findAllByVoteNoticeId(voteId);
         List<VoteResDTO.VoteOptionResponse> options = voteItems.stream()
                 .map(item -> new VoteResDTO.VoteOptionResponse(item.getId(), item.getName()))
                 .toList();

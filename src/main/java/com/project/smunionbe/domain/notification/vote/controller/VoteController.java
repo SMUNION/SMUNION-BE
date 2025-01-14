@@ -61,26 +61,32 @@ public class VoteController {
     @GetMapping("")
     @Operation(summary = "투표 공지 목록 조회 API", description = "특정 동아리의 투표 공지 목록을 커서 기반 페이지네이션으로 조회합니다.")
     @Parameters({
-            @Parameter(name = "id", description = "동아리 ID", required = true),
             @Parameter(name = "cursor", description = "마지막 데이터의 기준 커서 값"),
-            @Parameter(name = "offset", description = "한 번에 가져올 데이터의 개수")
+            @Parameter(name = "size", description = "한 번에 가져올 데이터의 개수")
     })
     public CustomResponse<VoteResDTO.VoteListResponse> getVotes(
-            @RequestParam("id") Long clubId,
             @RequestParam(value = "cursor", required = false) Long cursor,
-            @RequestParam(value = "size", defaultValue = "10") int size) {
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @AuthenticationPrincipal CustomUserDetails authMember,
+            HttpSession session) {
 
-        VoteResDTO.VoteListResponse response = voteQueryService.getVotes(clubId, cursor, size);
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, authMember.getMember().getId());
+        VoteResDTO.VoteListResponse response = voteQueryService.getVotes(cursor, size, selectedMemberClubId);
+
         return CustomResponse.onSuccess(response);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{voteId}")
     @Operation(summary = "투표 공지 상세 조회 API", description = "특정 투표 공지의 상세 정보를 조회합니다.")
-    @Parameter(name = "id", description = "조회할 공지의 ID", required = true)
+    @Parameter(name = "voteId", description = "조회할 공지의 ID", required = true)
     public CustomResponse<VoteResDTO.VoteDetailResponse> getVoteDetail(
-            @PathVariable("id") Long voteId) {
+            @PathVariable("voteId") Long voteId,
+            @AuthenticationPrincipal CustomUserDetails authMember,
+            HttpSession session) {
 
-        VoteResDTO.VoteDetailResponse response = voteQueryService.getVoteDetail(voteId);
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, authMember.getMember().getId());
+        VoteResDTO.VoteDetailResponse response = voteQueryService.getVoteDetail(voteId, selectedMemberClubId);
+
         return CustomResponse.onSuccess(response);
     }
 }
