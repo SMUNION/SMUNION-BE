@@ -22,4 +22,22 @@ public class VoteResDTO {
             Long cursor
     ) {
     }
+
+    public record VoteOptionResponse(
+            Long voteOptionId,
+            String optionName
+    ) {
+    }
+
+    public record VoteDetailResponse(
+            Long voteId,
+            String title,
+            String content,
+            LocalDateTime date,
+            boolean allowDuplicate,
+            boolean anonymous,
+            List<VoteOptionResponse> options,
+            LocalDateTime createdAt
+    ) {
+    }
 }

@@ -62,15 +62,25 @@ public class VoteController {
     @Operation(summary = "투표 공지 목록 조회 API", description = "특정 동아리의 투표 공지 목록을 커서 기반 페이지네이션으로 조회합니다.")
     @Parameters({
             @Parameter(name = "id", description = "동아리 ID", required = true),
-            @Parameter(name = "cursor", description = "마지막 데이터의 기준 커서 값", required = false),
-            @Parameter(name = "offset", description = "한 번에 가져올 데이터의 개수", required = false)
+            @Parameter(name = "cursor", description = "마지막 데이터의 기준 커서 값"),
+            @Parameter(name = "offset", description = "한 번에 가져올 데이터의 개수")
     })
-    public ResponseEntity<CustomResponse<VoteResDTO.VoteListResponse>> getVotes(
+    public CustomResponse<VoteResDTO.VoteListResponse> getVotes(
             @RequestParam("id") Long clubId,
             @RequestParam(value = "cursor", required = false) Long cursor,
-            @RequestParam(value = "offset", defaultValue = "10") int offset) {
+            @RequestParam(value = "size", defaultValue = "10") int size) {
 
-        VoteResDTO.VoteListResponse response = voteQueryService.getVotes(clubId, cursor, offset);
-        return ResponseEntity.ok(CustomResponse.onSuccess(response));
+        VoteResDTO.VoteListResponse response = voteQueryService.getVotes(clubId, cursor, size);
+        return CustomResponse.onSuccess(response);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "투표 공지 상세 조회 API", description = "특정 투표 공지의 상세 정보를 조회합니다.")
+    @Parameter(name = "id", description = "조회할 공지의 ID", required = true)
+    public CustomResponse<VoteResDTO.VoteDetailResponse> getVoteDetail(
+            @PathVariable("id") Long voteId) {
+
+        VoteResDTO.VoteDetailResponse response = voteQueryService.getVoteDetail(voteId);
+        return CustomResponse.onSuccess(response);
     }
 }
