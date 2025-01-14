@@ -18,11 +18,13 @@ public class CorsConfig {
         // 허용할 Origin(출처) 리스트
         ArrayList<String> allowedOriginPatterns = new ArrayList<>();
         allowedOriginPatterns.add("http://localhost:8080");
+        allowedOriginPatterns.add("http://127.0.0.1:8080");
         allowedOriginPatterns.add("http://localhost:3000");
+        allowedOriginPatterns.add("http://127.0.0.1:3000");
         allowedOriginPatterns.add("http://localhost:5500");
+        allowedOriginPatterns.add("http://127.0.0.1:5500");
         allowedOriginPatterns.add("http://localhost:5000");
-        allowedOriginPatterns.add("http://localhost:3453");
-        allowedOriginPatterns.add("http://localhost:8800");
+        allowedOriginPatterns.add("http://127.0.0.1:5000");
         allowedOriginPatterns.add("https://smunion.shop");
         allowedOriginPatterns.add("https://www.smunion.shop");
 
