@@ -6,7 +6,6 @@ import java.util.List;
 public class AttendanceReqDTO {
 
     public record CreateAttendanceDTO(
-            Long clubId,
             String title,
             String content,
             List<String> targetDepartments, // 특정 부서들
@@ -23,8 +22,7 @@ public class AttendanceReqDTO {
     }
 
     public record VerifyAttendanceRequest(
-            Long attendanceId,
-            Long clubId
+            Long attendanceId
     ){
     }
 }

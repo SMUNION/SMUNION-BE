@@ -1,16 +1,14 @@
 package com.project.smunionbe.global.config;
 
-import com.project.smunionbe.domain.member.repository.RefreshTokenRepository;
-import com.project.smunionbe.domain.member.security.CustomUserDetailsService;
 import com.project.smunionbe.global.config.jwt.TokenAuthenticationFilter;
 import com.project.smunionbe.global.config.jwt.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -25,15 +23,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final CustomUserDetailsService userDetailsService;
-
-    private final AuthenticationConfiguration authenticationConfiguration;
-
     private final TokenProvider tokenProvider;
 
     //인증이 필요하지 않은 url
     private final String[] allowedUrls = {
-            "/**", //JWT 개발 전까지 허용
             "/v3/api-docs/**",    // Allow access to OpenAPI docs
             "/swagger-ui/**",     // Allow access to Swagger UI
             "/swagger-ui.html" ,
@@ -56,7 +49,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, RefreshTokenRepository refreshTokenRepository) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         // CORS 정책 설정
         http
@@ -83,9 +76,10 @@ public class SecurityConfig {
         // 경로별 인가
         http
                 .authorizeHttpRequests(auth -> auth
-                        //위에서 정의했던 allowedUrls 들은 인증이 필요하지 않음 -> permitAll
+                        // OPTIONS 요청 및 인증 필요 없는 URL 허용
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(allowedUrls).permitAll()
-                        .anyRequest().authenticated()); // 그 외의 url 들은 인증이 필요함
+                        .anyRequest().authenticated()); // 그 외 모든 요청은 인증 필요
 
         http
                 .addFilterBefore(new TokenAuthenticationFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class);

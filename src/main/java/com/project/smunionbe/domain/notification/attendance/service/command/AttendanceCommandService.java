@@ -32,85 +32,95 @@ public class AttendanceCommandService {
     private final AttendanceStatusRepository attendanceStatusRepository;
     private final FCMNotificationService fcmNotificationService;
 
-    public void createAttendance(AttendanceReqDTO.CreateAttendanceDTO request, Long memberId) {
-        // 1. 권한 확인
-        boolean isMemberOfClub = memberClubRepository.existsByMemberIdAndClubId(memberId, request.clubId());
-        if (!isMemberOfClub) {
+    public void createAttendance(AttendanceReqDTO.CreateAttendanceDTO request, Long selectedMemberClubId) {
+        // 1. MemberClub 조회
+        MemberClub memberClub = memberClubRepository.findById(selectedMemberClubId)
+                .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.MEMBER_NOT_FOUND));
+
+        Long clubId = memberClub.getClub().getId();
+
+        // 2. 권한 확인
+        if (!memberClubRepository.existsByMemberIdAndClubId(memberClub.getMember().getId(), clubId)) {
             throw new AttendanceException(AttendanceErrorCode.ACCESS_DENIED);
         }
 
-        // 2. 동아리 조회
-        Club club = clubRepository.findByIdAndMemberId(request.clubId(), memberId)
+        // 3. 동아리 조회
+        Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ACCESS_DENIED));
 
-        // 3. 타겟 부서 멤버 조회
-        List<MemberClub> membersInTargetDepartments;
-        if (request.targetDepartments() == null || request.targetDepartments().isEmpty()) {
-            // 전체 부서 대상
-            membersInTargetDepartments = memberClubRepository.findAllByClubId(request.clubId());
-        } else {
-            // 특정 부서 대상
-            membersInTargetDepartments =
-                    memberClubRepository.findAllByClubIdAndDepartments(request.clubId(), request.targetDepartments());
-        }
+        // 4. 타겟 부서 멤버 조회
+        List<MemberClub> targetMembers = (request.targetDepartments() == null || request.targetDepartments().isEmpty())
+                ? memberClubRepository.findAllByClubId(clubId) // 전체 부서
+                : memberClubRepository.findAllByClubIdAndDepartments(clubId, request.targetDepartments());
 
-        // 4. 공지 생성
+        // 5. 출석 공지 생성
         AttendanceNotice attendanceNotice = AttendanceConverter.toAttendanceNotice(request, club);
         attendanceRepository.save(attendanceNotice);
 
-        // 5. AttendanceStatus 생성
-        List<AttendanceStatus> attendanceStatuses = membersInTargetDepartments.stream()
-                .map(memberClub -> AttendanceStatus.builder()
+        // 6. AttendanceStatus 생성
+        List<AttendanceStatus> attendanceStatuses = targetMembers.stream()
+                .map(targetMember -> AttendanceStatus.builder()
                         .attendanceNotice(attendanceNotice)
-                        .memberClub(memberClub)
-                        .isPresent(false) // 초기값
+                        .memberClub(targetMember)
+                        .isPresent(false)
                         .build())
                 .toList();
         attendanceStatusRepository.saveAll(attendanceStatuses);
 
-        // 6. 푸시 알림 전송 (FCMNotificationService 사용)
-        fcmNotificationService.sendPushNotifications(attendanceNotice, membersInTargetDepartments);
+        // 7. FCM 푸시 알림 전송
+        fcmNotificationService.sendPushNotifications(attendanceNotice, targetMembers);
     }
 
-    public void updateAttendance(Long attendanceId, AttendanceReqDTO.UpdateAttendanceRequest request, Long memberId) {
+    public void updateAttendance(Long attendanceId, AttendanceReqDTO.UpdateAttendanceRequest request, Long selectedMemberClubId) {
+        // MemberClub 조회
+        MemberClub memberClub = memberClubRepository.findById(selectedMemberClubId)
+                .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.MEMBER_NOT_FOUND));
+
         AttendanceNotice attendanceNotice = attendanceRepository.findById(attendanceId)
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ATTENDANCE_NOT_FOUND));
 
-        if (!memberClubRepository.existsByMemberIdAndClubId(memberId, attendanceNotice.getClub().getId())) {
+        // 권한 확인
+        if (!memberClub.getClub().equals(attendanceNotice.getClub())) {
             throw new AttendanceException(AttendanceErrorCode.ACCESS_DENIED);
         }
 
         attendanceNotice.update(request.title(), request.content(), request.target(), request.date());
     }
 
-    public void deleteAttendance(Long attendanceId, Long memberId) {
+    public void deleteAttendance(Long attendanceId, Long selectedMemberClubId) {
+        // MemberClub 조회
+        MemberClub memberClub = memberClubRepository.findById(selectedMemberClubId)
+                .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.MEMBER_NOT_FOUND));
+
         AttendanceNotice attendanceNotice = attendanceRepository.findById(attendanceId)
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ATTENDANCE_NOT_FOUND));
 
-        if (!memberClubRepository.existsByMemberIdAndClubId(memberId, attendanceNotice.getClub().getId())) {
+        // 권한 확인
+        if (!memberClub.getClub().equals(attendanceNotice.getClub())) {
             throw new AttendanceException(AttendanceErrorCode.ACCESS_DENIED);
         }
 
         attendanceRepository.delete(attendanceNotice);
     }
 
-    public void verifyAttendance(AttendanceReqDTO.VerifyAttendanceRequest request, Long memberId) {
-        // 1. memberClubId 조회
-        Long memberClubId = memberClubRepository.findIdByMemberIdAndClubId(memberId, request.clubId())
+    public void verifyAttendance(AttendanceReqDTO.VerifyAttendanceRequest request, Long selectedMemberClubId) {
+        // MemberClub 조회
+        MemberClub memberClub = memberClubRepository.findById(selectedMemberClubId)
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.MEMBER_NOT_FOUND));
 
-        // 2. 출석 공지 조회
         AttendanceNotice attendanceNotice = attendanceRepository.findById(request.attendanceId())
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ATTENDANCE_NOT_FOUND));
 
-        // 3. AttendanceStatus 조회 및 업데이트
-        AttendanceStatus status = attendanceStatusRepository.findByAttendanceAndMemberClub(attendanceNotice.getId(), memberClubId)
+        AttendanceStatus attendanceStatus = attendanceStatusRepository.findByAttendanceAndMemberClub(
+                        attendanceNotice.getId(),
+                        memberClub.getId()
+                )
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ATTENDANCE_STATUS_NOT_FOUND));
 
-        // 4. 출석 상태 업데이트
-        if (status.getIsPresent()) {
+        if (attendanceStatus.getIsPresent()) {
             throw new AttendanceException(AttendanceErrorCode.ALREADY_PRESENT);
         }
-        status.markPresent();
+
+        attendanceStatus.markPresent();
     }
 }
