@@ -14,6 +14,8 @@ public enum MemberClubErrorCode implements BaseErrorCode {
     DEPARTMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "MemberClub404_3", "해당 동아리 부서가 존재하지 않습니다."),
     SELECTED_NOT_FOUND(HttpStatus.NOT_FOUND, "MemberClub404_4", "저장되어 있는 동아리가 존재하지 않습니다."),
     INVALID_MEMBER_CLUB(HttpStatus.BAD_REQUEST, "MemberClub400_2", "사용자가 속해있는 동아리가 아닙니다."),
+    DUPLICATE_MEMBER_CLUB(HttpStatus.BAD_REQUEST, "MemberClub400_3", "사용자가 이미 속해있는 동아리입니다."),
+
 
     // 공통 처리
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "MemberClub400_0", "잘못된 요청입니다.");

@@ -76,11 +76,12 @@ public class ClubController {
             description = "동아리에 가입되어 있는 부원을 조회하는 API 입니다."
     )
     public CustomResponse<ClubResDTO.GetMemberClubListResDTO> getAllMemberClub(
-           @PathVariable Long clubId
+           @PathVariable Long clubId,
+           @AuthenticationPrincipal CustomUserDetails auth
     ) {
 
         ClubResDTO.GetMemberClubListResDTO response =
-                clubQueryService.getAllMemberClubList(clubId);
+                clubQueryService.getAllMemberClubList(clubId, auth.getMember().getId());
         return CustomResponse.onSuccess(response);
 
     }
