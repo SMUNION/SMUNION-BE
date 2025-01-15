@@ -20,4 +20,13 @@ public class VoteReqDTO {
             List<Long> voteOptionIds // 선택한 항목 ID 리스트
     ) {
     }
+
+    public record UpdateVoteDTO(
+            String title, // 수정된 제목
+            String content, // 수정된 내용
+            LocalDateTime date, // 수정된 마감일
+            boolean allowDuplicate, // 중복 투표 허용 여부
+            List<String> options // 수정된 투표 항목 리스트
+    ) {
+    }
 }

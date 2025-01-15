@@ -117,4 +117,19 @@ public class VoteController {
 
         return CustomResponse.onSuccess(response);
     }
+
+    @PatchMapping("/{id}")
+    @Operation(summary = "투표 공지 수정 API", description = "투표 공지 내용을 수정합니다.")
+    @Parameter(name = "id", description = "수정할 투표 공지의 ID", required = true)
+    public CustomResponse<String> updateVote(
+            @PathVariable("id") Long voteId,
+            @RequestBody @Valid VoteReqDTO.UpdateVoteDTO reqDTO,
+            @AuthenticationPrincipal CustomUserDetails authMember,
+            HttpSession session) {
+
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, authMember.getMember().getId());
+        voteCommandService.updateVote(voteId, reqDTO, selectedMemberClubId);
+
+        return CustomResponse.onSuccess(HttpStatus.OK, "투표 공지가 성공적으로 수정되었습니다.");
+    }
 }

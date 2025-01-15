@@ -41,4 +41,11 @@ public class VoteNotice extends BaseEntity {
 
     @Column(name = "anonymous")
     private boolean anonymous;
+
+    public void update(String title, String content, LocalDateTime date, boolean allowDuplicate) {
+        this.title = title;
+        this.content = content;
+        this.date = date;
+        this.allowDuplicate = allowDuplicate;
+    }
 }

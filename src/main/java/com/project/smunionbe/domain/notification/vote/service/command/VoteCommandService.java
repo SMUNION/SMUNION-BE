@@ -115,4 +115,37 @@ public class VoteCommandService {
             voteStatusRepository.save(voteStatus);
         }
     }
+
+    public void updateVote(Long voteId, VoteReqDTO.UpdateVoteDTO request, Long selectedMemberClubId) {
+        // 1. MemberClub 조회
+        MemberClub memberClub = memberClubRepository.findById(selectedMemberClubId)
+                .orElseThrow(() -> new VoteException(VoteErrorCode.MEMBER_NOT_FOUND));
+
+        // 2. 투표 공지 조회
+        VoteNotice voteNotice = voteNoticeRepository.findById(voteId)
+                .orElseThrow(() -> new VoteException(VoteErrorCode.VOTE_NOT_FOUND));
+
+        // 3. 권한 확인
+        if (!memberClub.getClub().equals(voteNotice.getClub())) {
+            throw new VoteException(VoteErrorCode.ACCESS_DENIED);
+        }
+
+        // 4. 투표 항목 업데이트 (기존 항목 삭제 후 새로 생성)
+        voteItemRepository.deleteAllByVoteNoticeId(voteNotice.getId());
+        List<VoteItem> updatedVoteItems = request.options().stream()
+                .map(option -> VoteItem.builder()
+                        .voteNotice(voteNotice)
+                        .name(option)
+                        .build())
+                .toList();
+        voteItemRepository.saveAll(updatedVoteItems);
+
+        // 5. 투표 공지 정보 업데이트
+        voteNotice.update(
+                request.title(),
+                request.content(),
+                request.date(),
+                request.allowDuplicate()
+        );
+    }
 }
