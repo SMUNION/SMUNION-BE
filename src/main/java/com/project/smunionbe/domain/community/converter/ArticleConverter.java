@@ -23,7 +23,7 @@ public class ArticleConverter {
                 .build();
     }
 
-    public ArticleResponseDTO.ArticleResponse toArticleResponseDto(Article article) {
-        return new ArticleResponseDTO.ArticleResponse(article.getId(), article.getTitle(), article.getContent(), article.getLikeNum());
+    public ArticleResponseDTO.ArticleResponse toArticleResponseDto(Article article, String clubName, String departmentName, String nickname) {
+        return new ArticleResponseDTO.ArticleResponse(article.getId(), clubName, departmentName, nickname, article.getTitle(), article.getContent(), article.getLikeNum(), article.getCreatedAt());
     }
 }
