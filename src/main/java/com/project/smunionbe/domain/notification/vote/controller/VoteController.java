@@ -132,4 +132,19 @@ public class VoteController {
 
         return CustomResponse.onSuccess(HttpStatus.OK, "투표 공지가 성공적으로 수정되었습니다.");
     }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "투표 공지 삭제 API", description = "특정 투표 공지를 삭제합니다.")
+    @Parameter(name = "id", description = "삭제할 투표 공지의 ID", required = true)
+    public ResponseEntity<CustomResponse<String>> deleteVote(
+            @PathVariable("id") Long voteId,
+            @AuthenticationPrincipal CustomUserDetails authMember,
+            HttpSession session) {
+
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, authMember.getMember().getId());
+        voteCommandService.deleteVoteNotice(voteId, selectedMemberClubId);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(CustomResponse.onSuccess(HttpStatus.OK, "투표 공지가 성공적으로 삭제되었습니다."));
+    }
 }

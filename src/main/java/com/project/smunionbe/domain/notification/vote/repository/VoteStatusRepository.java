@@ -2,6 +2,7 @@ package com.project.smunionbe.domain.notification.vote.repository;
 
 import com.project.smunionbe.domain.notification.vote.entity.VoteStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -21,4 +22,8 @@ public interface VoteStatusRepository extends JpaRepository<VoteStatus, Long> {
 
     // 특정 투표 항목에 대한 투표 수
     long countByVoteItemId(Long voteItemId);
+
+    @Modifying
+    @Query("DELETE FROM VoteStatus vs WHERE vs.voteNotice.id = :voteNoticeId")
+    void deleteAllByVoteNoticeId(@Param("voteNoticeId") Long voteNoticeId);
 }

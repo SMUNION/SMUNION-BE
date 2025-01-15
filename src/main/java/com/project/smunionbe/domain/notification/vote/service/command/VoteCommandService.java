@@ -148,4 +148,28 @@ public class VoteCommandService {
                 request.allowDuplicate()
         );
     }
+
+    public void deleteVoteNotice(Long voteId, Long selectedMemberClubId) {
+        // 1. MemberClub 조회
+        MemberClub memberClub = memberClubRepository.findById(selectedMemberClubId)
+                .orElseThrow(() -> new VoteException(VoteErrorCode.MEMBER_NOT_FOUND));
+
+        // 2. 투표 공지 조회
+        VoteNotice voteNotice = voteNoticeRepository.findById(voteId)
+                .orElseThrow(() -> new VoteException(VoteErrorCode.VOTE_NOT_FOUND));
+
+        // 3. 권한 확인
+        if (!memberClub.getClub().equals(voteNotice.getClub())) {
+            throw new VoteException(VoteErrorCode.ACCESS_DENIED);
+        }
+
+        // 4. 관련된 투표 항목 삭제
+        voteItemRepository.deleteAllByVoteNoticeId(voteId);
+
+        // 5. 관련된 투표 상태 삭제
+        voteStatusRepository.deleteAllByVoteNoticeId(voteId);
+
+        // 6. 투표 공지 삭제
+        voteNoticeRepository.delete(voteNotice);
+    }
 }
