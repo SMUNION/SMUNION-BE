@@ -33,4 +33,5 @@ public interface MemberClubRepository extends JpaRepository<MemberClub, Long> {
 
 
     boolean existsByMemberIdAndClubId(Long memberId, Long clubId);
+    boolean existsByMemberId(Long memberId);
 }

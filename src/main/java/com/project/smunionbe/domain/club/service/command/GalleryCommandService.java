@@ -34,11 +34,15 @@ public class GalleryCommandService {
     private final ClubRepository clubRepository;
     private final MemberClubRepository memberClubRepository;
 
-    public GalleryResDTO.CreateGalleryResDTO createGallery(GalleryReqDTO.CreateGalleryDTO request, Long clubId) {
+    public GalleryResDTO.CreateGalleryResDTO createGallery(GalleryReqDTO.CreateGalleryDTO request, Long clubId, Long memberId) {
 
         Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new ClubException(ClubErrorCode.CLUB_NOT_FOUND));
 
+        MemberClub memberClub = memberClubRepository.findByMemberIdAndClubId(memberId, clubId);
+        if(!memberClub.is_Staff()) {
+            throw new ClubException(ClubErrorCode.ACCESS_DENIED);
+        }
         Gallery gallery = GalleryConverter.toGallery(request, club);
         galleryRepository.save(gallery);
         return GalleryConverter.toCreateGalleryResponse(gallery);
@@ -49,9 +53,11 @@ public class GalleryCommandService {
         Gallery gallery = galleryRepository.findById(galleryId)
                 .orElseThrow(() -> new GalleryException(GalleryErrorCode.GALLERY_NOT_FOUND));
 
-        /*if (!memberClubRepository.existsByMemberIdAndClubId(memberId, gallery.getClub().getId())) {
+        MemberClub memberClub = memberClubRepository.findByMemberIdAndClubId(memberId, gallery.getClub().getId());
+        if(!memberClub.is_Staff()) {
             throw new ClubException(ClubErrorCode.ACCESS_DENIED);
-        }*/
+        }
+
 
         galleryRepository.delete(gallery);
     }
@@ -59,7 +65,11 @@ public class GalleryCommandService {
     public void updateGallery(Long galleryId, GalleryReqDTO.UpdateGalleryRequest request, Long memberId) {
         Gallery gallery = galleryRepository.findById(galleryId)
                 .orElseThrow(() -> new GalleryException(GalleryErrorCode.GALLERY_NOT_FOUND));
-
+        Long clubId = gallery.getClub().getId();
+        MemberClub memberClub = memberClubRepository.findByMemberIdAndClubId(memberId, clubId);
+        if(!memberClub.is_Staff()) {
+            throw new ClubException(ClubErrorCode.ACCESS_DENIED);
+        }
         // 권한 확인 코드 추가 필요
         /*Long clubId = gallery.getClub().getId();
         if (!memberClubRepository.existsByMemberIdAndClubId(MemberId, clubId)) {
