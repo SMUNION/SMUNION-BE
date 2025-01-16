@@ -1,6 +1,7 @@
 package com.project.smunionbe.domain.notification.vote.entity;
 
 import com.project.smunionbe.domain.club.entity.Club;
+import com.project.smunionbe.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @Table(name = "vote_notice")
-public class VoteNotice {
+public class VoteNotice extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,4 +41,11 @@ public class VoteNotice {
 
     @Column(name = "anonymous")
     private boolean anonymous;
+
+    public void update(String title, String content, LocalDateTime date, boolean allowDuplicate) {
+        this.title = title;
+        this.content = content;
+        this.date = date;
+        this.allowDuplicate = allowDuplicate;
+    }
 }
