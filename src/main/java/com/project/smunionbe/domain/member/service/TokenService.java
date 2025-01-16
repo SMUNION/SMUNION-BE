@@ -20,13 +20,14 @@ public class TokenService {
     // 회원을 기반으로 새로운 액세스 토큰 생성
     public String createNewAccessTokenForMember(Member member) {
         // 액세스 토큰 생성 (유효시간 2시간 설정)
-        return tokenProvider.generateToken(member, Duration.ofHours(2));
+        //return tokenProvider.generateToken(member, Duration.ofHours(2));
+        return tokenProvider.generateToken(member, Duration.ofSeconds(60));
     }
 
     // 회원을 기반으로 새로운 리프레시 토큰 생성
     public String createNewRefreshTokenForMember(Member member) {
         if (refreshTokenService.existsByMemberId(member.getId())) {
-            throw new AuthException(AuthErrorCode.ALREADY_LOGGED_IN);
+            refreshTokenService.deleteByMemberId(member.getId());
         }
         String refreshToken = tokenProvider.generateToken(member, Duration.ofDays(7)); // 리프레시 토큰 유효시간: 7일
         refreshTokenService.saveRefreshToken(member, refreshToken); // 리프레시 토큰 저장

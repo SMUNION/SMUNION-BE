@@ -121,6 +121,25 @@ public class TokenProvider {
         return null;
     }
 
+    public boolean isTokenExpired(String token) {
+        try {
+            //Claims 객체 가져오기
+            Claims claims = getClaims(token);
+
+            // 만료 시간 확인 (exp 클레임)
+            Date expiration = claims.getExpiration();
+
+            // 현재 시간보다 만료 시간이 이전이라면 만료된 토큰
+            return expiration.before(new Date());
+        } catch (ExpiredJwtException e) {
+            // 이미 만료된 토큰을 예외로 처리할 수 있음
+            return true;  // 만료된 토큰
+        } catch (Exception e) {
+            // JWT 파싱 오류, 서명 오류 등 유효하지 않은 토큰일 경우
+            return false;  // 유효하지 않은 토큰
+        }
+    }
+
 
 
 

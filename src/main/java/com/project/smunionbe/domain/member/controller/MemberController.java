@@ -81,8 +81,9 @@ public class MemberController {
             description = "로그아웃 API 입니다. accessToken과 함께 요청해주세요.(\"Bearer \"없이 토큰만 입력해주세요)"
     )
     public ResponseEntity<CustomResponse<String>> logout(HttpServletRequest request) {
-
+        System.out.println("token은 불러와짐???");
         String accessToken = tokenProvider.resolveToken(request);
+        System.out.println("token은 불러와짐" + accessToken);
 
         // 로그아웃 처리
         tokenService.logout(accessToken);
