@@ -93,13 +93,13 @@ public class VoteController {
     @GetMapping("/{id}/results")
     @Operation(summary = "투표 현황 조회 API", description = "특정 투표 공지의 투표 현황을 조회합니다.")
     @Parameter(name = "id", description = "투표 공지 ID", required = true)
-    public CustomResponse<VoteResDTO.VoteResultsResponse> getVoteResults(
+    public CustomResponse<VoteResDTO.VoteResultResponse> getVoteResults(
             @PathVariable("id") Long voteId,
             @AuthenticationPrincipal CustomUserDetails authMember,
             HttpSession session) {
 
         Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, authMember.getMember().getId());
-        VoteResDTO.VoteResultsResponse response = voteQueryService.getVoteResults(voteId, selectedMemberClubId);
+        VoteResDTO.VoteResultResponse response = voteQueryService.getVoteResults(voteId, selectedMemberClubId);
 
         return CustomResponse.onSuccess(response);
     }

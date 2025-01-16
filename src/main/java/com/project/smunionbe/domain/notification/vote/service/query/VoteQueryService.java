@@ -5,6 +5,7 @@ import com.project.smunionbe.domain.member.repository.MemberClubRepository;
 import com.project.smunionbe.domain.notification.vote.dto.response.VoteResDTO;
 import com.project.smunionbe.domain.notification.vote.entity.VoteItem;
 import com.project.smunionbe.domain.notification.vote.entity.VoteNotice;
+import com.project.smunionbe.domain.notification.vote.entity.VoteStatus;
 import com.project.smunionbe.domain.notification.vote.exception.VoteErrorCode;
 import com.project.smunionbe.domain.notification.vote.exception.VoteException;
 import com.project.smunionbe.domain.notification.vote.repository.VoteItemRepository;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -97,7 +100,7 @@ public class VoteQueryService {
         );
     }
 
-    public VoteResDTO.VoteResultsResponse getVoteResults(Long voteId, Long selectedMemberClubId) {
+    public VoteResDTO.VoteResultResponse getVoteResults(Long voteId, Long selectedMemberClubId) {
         // 1. MemberClub 조회
         MemberClub memberClub = memberClubRepository.findById(selectedMemberClubId)
                 .orElseThrow(() -> new VoteException(VoteErrorCode.MEMBER_NOT_FOUND));
@@ -106,29 +109,28 @@ public class VoteQueryService {
         VoteNotice voteNotice = voteNoticeRepository.findById(voteId)
                 .orElseThrow(() -> new VoteException(VoteErrorCode.VOTE_NOT_FOUND));
 
-        // 3. 권한 검증
-        if (!memberClub.getClub().equals(voteNotice.getClub())) {
-            throw new VoteException(VoteErrorCode.ACCESS_DENIED);
-        }
+        // 3. 투표 결과 조회
+        List<VoteStatus> statuses = voteStatusRepository.findByVoteNoticeId(voteId);
 
-        // 4. 투표 항목 및 투표 상태 조회
-        List<VoteItem> voteItems = voteItemRepository.findAllByVoteNoticeId(voteId);
+        // 4. 옵션별 집계
+        Map<VoteItem, Long> voteCounts = statuses.stream()
+                .collect(Collectors.groupingBy(VoteStatus::getVoteItem, Collectors.counting()));
 
-        // 투표 결과 계산
-        long totalVotes = voteStatusRepository.countByVoteNoticeId(voteId);
+        // 5. 총 투표 수 계산
+        long totalVotes = voteCounts.values().stream().mapToLong(Long::longValue).sum();
 
-        List<VoteResDTO.VoteResult> results = voteItems.stream().map(item -> {
-            long votesForItem = voteStatusRepository.countByVoteItemId(item.getId());
-            int percentage = totalVotes > 0 ? (int) ((votesForItem * 100) / totalVotes) : 0;
-            return new VoteResDTO.VoteResult(
-                    item.getId(),
-                    item.getName(),
-                    votesForItem,
-                    percentage
-            );
-        }).toList();
+        // 6. 응답 생성
+        List<VoteResDTO.VoteResult> results = voteCounts.entrySet().stream()
+                .map(entry -> {
+                    VoteItem voteItem = entry.getKey();
+                    long count = entry.getValue();
+                    int percentage = (int) ((count * 100.0) / totalVotes);
 
-        return new VoteResDTO.VoteResultsResponse(results);
+                    return new VoteResDTO.VoteResult(voteItem.getId(), voteItem.getName(), count, percentage);
+                })
+                .collect(Collectors.toList());
+
+        return new VoteResDTO.VoteResultResponse(results, voteNotice.isAnonymous());
     }
 
     public VoteResDTO.VoteAbsenteesResponse getAbsentees(Long voteId, Long selectedMemberClubId) {

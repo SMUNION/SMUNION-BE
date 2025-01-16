@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -77,27 +78,30 @@ public class VoteCommandService {
                 .orElseThrow(() -> new VoteException(VoteErrorCode.VOTE_NOT_FOUND));
 
         // 2. MemberClub 조회
-        MemberClub memberClub = null;
-        if (!voteNotice.isAnonymous()) {
-            memberClub = memberClubRepository.findById(selectedMemberClubId)
-                    .orElseThrow(() -> new VoteException(VoteErrorCode.MEMBER_NOT_FOUND));
-        }
+        MemberClub memberClub = memberClubRepository.findById(selectedMemberClubId)
+                .orElseThrow(() -> new VoteException(VoteErrorCode.MEMBER_NOT_FOUND));
 
-        // 3. 부서 제한 검증 (target 필드 파싱)
-        String target = voteNotice.getTarget(); // 예: "1번 부서, 2번 부서" 또는 "전체"
+        // 3. 부서 제한 검증
+        String target = voteNotice.getTarget();
         if (!"전체".equals(target)) {
-            List<String> allowedDepartments = List.of(target.split(", ")); // 콤마로 분리하여 부서 리스트 생성
+            List<String> allowedDepartments = List.of(target.split(", "));
             String memberDepartment = memberClub.getDepartment().getName();
             if (!allowedDepartments.contains(memberDepartment)) {
                 throw new VoteException(VoteErrorCode.ACCESS_DENIED);
             }
         }
 
-        // 4. 중복 투표 허용 여부 확인
-        if (!voteNotice.isAllowDuplicate() && !voteNotice.isAnonymous()) {
-            boolean hasVoted = voteStatusRepository.existsByVoteNoticeIdAndMemberClubId(voteNotice.getId(), memberClub.getId());
-            if (hasVoted) {
-                throw new VoteException(VoteErrorCode.DUPLICATE_VOTE_NOT_ALLOWED);
+        // 4. 중복 투표 제한 확인
+        if (!voteNotice.isAllowDuplicate()) {
+            for (Long optionId : request.voteOptionIds()) {
+                // 기존 투표 상태를 확인
+                Optional<VoteStatus> existingVote = voteStatusRepository.findByVoteNoticeIdAndVoteItemIdAndMemberClubId(
+                        voteNotice.getId(), optionId, memberClub.getId());
+
+                if (existingVote.isPresent()) {
+                    // 이미 투표한 항목이 있다면 덮어쓰기 필요 없음 (중복 투표 방지)
+                    throw new VoteException(VoteErrorCode.DUPLICATE_VOTE_NOT_ALLOWED);
+                }
             }
         }
 
@@ -106,13 +110,21 @@ public class VoteCommandService {
             VoteItem voteItem = voteItemRepository.findById(optionId)
                     .orElseThrow(() -> new VoteException(VoteErrorCode.INVALID_VOTE_ITEM));
 
-            VoteStatus voteStatus = VoteStatus.builder()
-                    .voteNotice(voteNotice)
-                    .voteItem(voteItem)
-                    .memberClub(voteNotice.isAnonymous() ? null : memberClub)
-                    .build();
+            // **추가된 검증 로직: VoteItem이 해당 VoteNotice에 속하는지 확인**
+            if (!voteItem.getVoteNotice().getId().equals(voteId)) {
+                throw new VoteException(VoteErrorCode.INVALID_VOTE_ITEM);
+            }
 
-            voteStatusRepository.save(voteStatus);
+            // 기존 투표 상태를 확인하고 덮어쓰거나 새로 추가
+            VoteStatus voteStatus = voteStatusRepository.findByVoteNoticeIdAndVoteItemIdAndMemberClubId(
+                            voteNotice.getId(), optionId, memberClub.getId())
+                    .orElse(VoteStatus.builder()
+                            .voteNotice(voteNotice)
+                            .voteItem(voteItem)
+                            .memberClub(memberClub)
+                            .build());
+
+            voteStatusRepository.save(voteStatus); // 새로 저장하거나 기존 상태를 덮어씁니다
         }
     }
 

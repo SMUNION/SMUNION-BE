@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface VoteStatusRepository extends JpaRepository<VoteStatus, Long> {
@@ -17,11 +18,19 @@ public interface VoteStatusRepository extends JpaRepository<VoteStatus, Long> {
     boolean existsByVoteNoticeIdAndMemberClubId(@Param("voteNoticeId") Long voteNoticeId,
                                                 @Param("memberClubId") Long memberClubId);
 
-    // 특정 투표 공지의 전체 투표 수
-    long countByVoteNoticeId(Long voteNoticeId);
+    @Query("SELECT vs FROM VoteStatus vs " +
+            "WHERE vs.voteNotice.id = :voteNoticeId " +
+            "AND vs.voteItem.id = :voteItemId " +
+            "AND vs.memberClub.id = :memberClubId")
+    Optional<VoteStatus> findByVoteNoticeIdAndVoteItemIdAndMemberClubId(
+            @Param("voteNoticeId") Long voteNoticeId,
+            @Param("voteItemId") Long voteItemId,
+            @Param("memberClubId") Long memberClubId
+    );
 
-    // 특정 투표 항목에 대한 투표 수
-    long countByVoteItemId(Long voteItemId);
+    @Query("SELECT vs FROM VoteStatus vs WHERE vs.voteNotice.id = :voteNoticeId")
+    List<VoteStatus> findByVoteNoticeId(@Param("voteNoticeId") Long voteNoticeId);
+
 
     @Modifying
     @Query("DELETE FROM VoteStatus vs WHERE vs.voteNotice.id = :voteNoticeId")

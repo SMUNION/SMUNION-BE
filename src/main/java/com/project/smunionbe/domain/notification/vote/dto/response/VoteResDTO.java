@@ -41,17 +41,6 @@ public class VoteResDTO {
     ) {
     }
 
-    public record VoteResultsResponse(
-            List<VoteResult> results
-    ) {}
-
-    public record VoteResult(
-            Long voteOptionId,
-            String optionName,
-            long votes,
-            int percentage
-    ) {}
-
     public record VoteAbsenteesResponse(
             List<Absentee> absentees
     ) {}
@@ -60,4 +49,18 @@ public class VoteResDTO {
             Long memberId,
             String nickname
     ) {}
+
+    public record VoteResultResponse(
+            List<VoteResult> results,
+            boolean anonymous // 익명 여부 추가
+    ) {
+    }
+
+    public record VoteResult(
+            Long voteOptionId,
+            String optionName,
+            Long votes,
+            Integer percentage
+    ) {
+    }
 }
