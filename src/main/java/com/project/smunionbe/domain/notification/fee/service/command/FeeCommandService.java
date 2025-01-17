@@ -9,7 +9,11 @@ import com.project.smunionbe.domain.member.repository.MemberRepository;
 import com.project.smunionbe.domain.notification.fee.converter.FeeNoticeConverter;
 import com.project.smunionbe.domain.notification.fee.dto.request.FeeReqDTO;
 import com.project.smunionbe.domain.notification.fee.entity.FeeNotice;
+import com.project.smunionbe.domain.notification.fee.entity.FeeStatus;
+import com.project.smunionbe.domain.notification.fee.exception.FeeErrorCode;
+import com.project.smunionbe.domain.notification.fee.exception.FeeException;
 import com.project.smunionbe.domain.notification.fee.repository.FeeNoticeRepository;
+import com.project.smunionbe.domain.notification.fee.repository.FeeStatusRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,6 +27,7 @@ public class FeeCommandService {
 
     private final MemberClubRepository memberClubRepository;
     private final FeeNoticeRepository feeNoticeRepository;
+    private final FeeStatusRepository feeStatusRepository;
 
     public void createFeeNotice(FeeReqDTO.CreateFeeNoticeRequestDTO request, Long memberClubId) {
         // 1. MemberClub 확인
@@ -37,5 +42,31 @@ public class FeeCommandService {
         feeNoticeRepository.save(feeNotice);
 
         log.info("회비 공지가 생성되었습니다. feeNoticeId: {}, clubId: {}", feeNotice.getId(), club.getId());
+    }
+
+    public void updatePaymentStatus(Long feeId, Long memberClubId) {
+        // 1. MemberClub 조회 및 운영진 여부 검증
+        MemberClub memberClub = memberClubRepository.findById(memberClubId)
+                .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.MEMBER_CLUB_NOT_FOUND));
+
+        if (!memberClub.is_Staff()) {
+            throw new FeeException(FeeErrorCode.ACCESS_DENIED);
+        }
+
+        // 2. FeeNotice 조회
+        FeeNotice feeNotice = feeNoticeRepository.findById(feeId)
+                .orElseThrow(() -> new FeeException(FeeErrorCode.FEE_NOTICE_NOT_FOUND));
+
+        // 3. FeeStatus 업데이트
+        FeeStatus feeStatus = feeStatusRepository.findByFeeNoticeAndMemberClub(feeNotice, memberClub)
+                .orElseGet(() -> FeeStatus.builder()
+                        .feeNotice(feeNotice)
+                        .memberClub(memberClub)
+                        .build());
+
+        feeStatus.setPaid(true); // 납부 상태 업데이트
+        feeStatusRepository.save(feeStatus);
+
+        log.info("회비 납부 상태가 업데이트되었습니다. feeId: {}, memberClubId: {}", feeId, memberClubId);
     }
 }

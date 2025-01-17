@@ -23,5 +23,13 @@ public class FeeStatus {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fee_id", nullable = false)
     private FeeNotice feeNotice;
+
+    @Column(name = "is_paid", nullable = false)
+    private boolean isPaid;
+
+    // 납부 상태 업데이트 메서드
+    public void setPaid(boolean isPaid) {
+        this.isPaid = isPaid;
+    }
 }
 

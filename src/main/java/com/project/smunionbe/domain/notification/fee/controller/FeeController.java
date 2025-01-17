@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -84,5 +83,18 @@ public class FeeController {
         FeeResDTO.UnpaidMembersResponse response = feeQueryService.getUnpaidMembers(feeId, selectedMemberClubId);
 
         return CustomResponse.onSuccess(response);
+    }
+
+    @PostMapping("/{id}/payment")
+    @Operation(summary = "회비 납부 상태 업데이트 API", description = "특정 회비 공지의 납부 상태를 업데이트합니다. 운영진만 접근 가능합니다.")
+    public CustomResponse<String> updatePaymentStatus(
+            @PathVariable("id") Long feeId,
+            @AuthenticationPrincipal CustomUserDetails authMember,
+            HttpSession session) {
+
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, authMember.getMember().getId());
+        feeCommandService.updatePaymentStatus(feeId, selectedMemberClubId);
+
+        return CustomResponse.onSuccess(HttpStatus.OK, "회비 납부 상태가 성공적으로 업데이트되었습니다.");
     }
 }

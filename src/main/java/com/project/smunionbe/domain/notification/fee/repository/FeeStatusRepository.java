@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface FeeStatusRepository extends JpaRepository<FeeStatus, Long> {
 
@@ -19,4 +20,6 @@ public interface FeeStatusRepository extends JpaRepository<FeeStatus, Long> {
         )
     """)
     List<MemberClub> findUnpaidMembersByFeeNotice(@Param("feeNotice") FeeNotice feeNotice);
+
+    Optional<FeeStatus> findByFeeNoticeAndMemberClub(FeeNotice feeNotice, MemberClub memberClub);
 }
