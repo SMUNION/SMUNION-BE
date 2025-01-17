@@ -81,9 +81,7 @@ public class MemberController {
             description = "로그아웃 API 입니다. accessToken과 함께 요청해주세요.(\"Bearer \"없이 토큰만 입력해주세요)"
     )
     public ResponseEntity<CustomResponse<String>> logout(HttpServletRequest request) {
-        System.out.println("token은 불러와짐???");
         String accessToken = tokenProvider.resolveToken(request);
-        System.out.println("token은 불러와짐" + accessToken);
 
         // 로그아웃 처리
         tokenService.logout(accessToken);
@@ -91,6 +89,28 @@ public class MemberController {
         // 성공 응답 반환
         return ResponseEntity.status(HttpStatus.OK)
                 .body(CustomResponse.onSuccess(HttpStatus.OK, "로그아웃에 성공하였습니다."));
+    }
+
+    @PostMapping("/refresh")
+    @Operation(
+            summary = "access 토큰 재발급 API",
+            description = "access 토큰 재발급 API 입니다. refreshToken과 함께 요청해주세요.(header가 아닌 requestBody에 담아주세요)"
+    )
+    public ResponseEntity<CustomResponse<AccessTokenResponseDTO.ReturnTokenDTO>> refreshAccessToken(@RequestBody AccessTokenRequestDTO.CreateAccessTokenDTO dto) {
+        //액세스 토큰 재발급
+        System.out.println("1번: " + dto.refreshToken());
+        Map<String, String> tokenMap = tokenService.createNewAccessToken(dto.refreshToken());
+
+        String newAccessToken = tokenMap.get("accessToken");
+        String newRefreshToken = tokenMap.get("refreshToken");
+
+        // 토큰들을 DTO에 저장
+        AccessTokenResponseDTO.ReturnTokenDTO returnTokenDTO = new AccessTokenResponseDTO.ReturnTokenDTO("Bearer " + newAccessToken, newRefreshToken);
+
+        // 토큰 반환
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(CustomResponse.onSuccess(HttpStatus.OK, returnTokenDTO));
+
     }
 
 

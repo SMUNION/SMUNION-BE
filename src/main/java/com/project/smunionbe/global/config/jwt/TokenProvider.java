@@ -123,14 +123,6 @@ public class TokenProvider {
         return bearerToken;
     }
 
-    // Request Header에 Refresh Token 정보를 추출하는 메서드
-    public String resolveRefreshToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Refresh");
-        if (StringUtils.hasText(bearerToken)) {
-            return bearerToken;
-        }
-        return null;
-    }
 
     public boolean isTokenExpired(String token) {
         try {

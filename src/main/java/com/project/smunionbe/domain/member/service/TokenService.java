@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Service
@@ -20,8 +22,8 @@ public class TokenService {
     // 회원을 기반으로 새로운 액세스 토큰 생성
     public String createNewAccessTokenForMember(Member member) {
         // 액세스 토큰 생성 (유효시간 2시간 설정)
-        //return tokenProvider.generateToken(member, Duration.ofHours(2));
-        return tokenProvider.generateAccessToken(member, Duration.ofSeconds(60));
+        return tokenProvider.generateAccessToken(member, Duration.ofHours(2));
+        //return tokenProvider.generateAccessToken(member, Duration.ofSeconds(60));
     }
 
     // 회원을 기반으로 새로운 리프레시 토큰 생성
@@ -35,16 +37,35 @@ public class TokenService {
     }
 
     // 리프레시 토큰을 기반으로 새로운 액세스 토큰 생성
-    public String createNewAccessToken(String refreshToken) {
+    public Map<String, String> createNewAccessToken(String refreshToken) {
+        System.out.println("2번: " + refreshToken);
         //토큰 유효성 검사에 실패하면 예외 발생
         if (!tokenProvider.validToken(refreshToken, "refresh")) {
             throw new AuthException(AuthErrorCode.REFRESH_TOKEN_INVALID);
         }
 
+        // 리프레시 토큰을 기반으로 사용자 정보 조회
         Long memberId = refreshTokenService.findByRefreshToken(refreshToken).getMemberId();
         Member member = memberService.findById(memberId);
 
-        return tokenProvider.generateAccessToken(member, Duration.ofHours(2)); //토큰의 유효시간을 두시간으로 설정
+        // 리프레시 토큰 삭제 후 재발급 & 저장
+        String newRefreshToken = "";
+        if (refreshTokenService.existsByMemberId(memberId)) {
+            refreshTokenService.deleteByMemberId(memberId);
+            newRefreshToken = tokenProvider.generateRefreshToken(member, Duration.ofDays(7)); // 리프레시 토큰 유효시간: 7일
+            refreshTokenService.saveRefreshToken(member, newRefreshToken); // 리프레시 토큰 저장
+        } else {
+            newRefreshToken = tokenProvider.generateRefreshToken(member, Duration.ofDays(7)); // 리프레시 토큰 유효시간: 7일
+            refreshTokenService.saveRefreshToken(member, newRefreshToken); // 리프레시 토큰 저장
+        }
+
+        String newAccessToken = tokenProvider.generateAccessToken(member, Duration.ofHours(2));
+
+        Map<String, String> tokenMap = new HashMap<>();
+        tokenMap.put("accessToken", newAccessToken);
+        tokenMap.put("refreshToken", newRefreshToken);
+
+        return tokenMap;
     }
 
     // 로그아웃 처리
