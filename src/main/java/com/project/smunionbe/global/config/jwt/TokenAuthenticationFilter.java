@@ -24,11 +24,6 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String requestURI = request.getRequestURI();
 
-        // OPTIONS 요청은 모든 경로에서 허용
-        if (HttpMethod.OPTIONS.matches(request.getMethod())) {
-            return true;
-        }
-
         return requestURI.equals("") ||
            requestURI.equals("/") ||  // 루트 경로 "/" 인증 제외
            requestURI.equals("/favicon.ico") ||  // 파비콘 요청 인증 제외
