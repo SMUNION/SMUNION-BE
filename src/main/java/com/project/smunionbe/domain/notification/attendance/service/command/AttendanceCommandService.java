@@ -12,7 +12,7 @@ import com.project.smunionbe.domain.notification.attendance.exception.Attendance
 import com.project.smunionbe.domain.notification.attendance.exception.AttendanceException;
 import com.project.smunionbe.domain.notification.attendance.repository.AttendanceRepository;
 import com.project.smunionbe.domain.notification.attendance.repository.AttendanceStatusRepository;
-import com.project.smunionbe.domain.notification.attendance.service.event.FCMNotificationService;
+import com.project.smunionbe.domain.notification.fcm.service.event.FCMNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
