@@ -72,4 +72,17 @@ public class FeeController {
 
         return CustomResponse.onSuccess(response);
     }
+
+    @GetMapping("/{id}/unpaid")
+    @Operation(summary = "미납부 멤버 조회 API", description = "특정 회비 공지에 대해 미납부 멤버 목록을 조회합니다.")
+    public CustomResponse<FeeResDTO.UnpaidMembersResponse> getUnpaidMembers(
+            @PathVariable("id") Long feeId,
+            @AuthenticationPrincipal CustomUserDetails authMember,
+            HttpSession session) {
+
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, authMember.getMember().getId());
+        FeeResDTO.UnpaidMembersResponse response = feeQueryService.getUnpaidMembers(feeId, selectedMemberClubId);
+
+        return CustomResponse.onSuccess(response);
+    }
 }

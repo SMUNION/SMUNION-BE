@@ -28,4 +28,16 @@ public class FeeResDTO {
             LocalDateTime createdAt
     ) {
     }
+
+    public record UnpaidMembersResponse(
+            Long feeId,
+            List<UnpaidMemberResponse> unpaidMembers
+    ) {
+    }
+
+    public record UnpaidMemberResponse(
+            Long memberId,
+            String nickname
+    ) {
+    }
 }
