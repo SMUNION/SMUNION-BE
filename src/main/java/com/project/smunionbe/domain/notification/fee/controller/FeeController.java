@@ -3,21 +3,21 @@ package com.project.smunionbe.domain.notification.fee.controller;
 import com.project.smunionbe.domain.member.security.CustomUserDetails;
 import com.project.smunionbe.domain.member.service.ClubSelectionService;
 import com.project.smunionbe.domain.notification.fee.dto.request.FeeReqDTO;
+import com.project.smunionbe.domain.notification.fee.dto.response.FeeResDTO;
 import com.project.smunionbe.domain.notification.fee.service.command.FeeCommandService;
+import com.project.smunionbe.domain.notification.fee.service.query.FeeQueryService;
 import com.project.smunionbe.global.apiPayload.CustomResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class FeeController {
 
     private final FeeCommandService feeCommandService;
+    private final FeeQueryService feeQueryService;
     private final ClubSelectionService clubSelectionService;
 
     @PostMapping("")
@@ -41,5 +42,21 @@ public class FeeController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(CustomResponse.onSuccess(HttpStatus.CREATED, "회비 공지가 성공적으로 생성되었습니다."));
+    }
+
+    @GetMapping("")
+    @Operation(summary = "회비 공지 목록 조회 API", description = "특정 동아리의 회비 공지 목록을 커서 기반 페이지네이션으로 조회합니다.")
+    public CustomResponse<FeeResDTO.FeeNoticeListResponse> getFeeNotices(
+            @RequestParam("id") Long clubId,
+            @RequestParam(value = "cursor", required = false) Long cursor,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @AuthenticationPrincipal CustomUserDetails authMember,
+            HttpSession session) {
+
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, authMember.getMember().getId());
+        FeeResDTO.FeeNoticeListResponse response =
+                feeQueryService.getFeeNotices(clubId, cursor, size, selectedMemberClubId);
+
+        return CustomResponse.onSuccess(response);
     }
 }

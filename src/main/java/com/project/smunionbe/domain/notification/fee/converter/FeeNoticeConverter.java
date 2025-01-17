@@ -19,4 +19,18 @@ public class FeeNoticeConverter {
                 .participantCount(request.participantCount())
                 .build();
     }
+
+    public static FeeResDTO.FeeNoticeResponse toFeeNoticeResponse(FeeNotice feeNotice) {
+        return FeeResDTO.FeeNoticeResponse.builder()
+                .feeId(feeNotice.getId())
+                .title(feeNotice.getTitle())
+                .content(feeNotice.getContent())
+                .amount(feeNotice.getAmount())
+                .bank(feeNotice.getBank())
+                .accountNumber(feeNotice.getAccountNumber())
+                .participantCount(feeNotice.getParticipantCount())
+                .deadline(feeNotice.getDate())
+                .createdAt(feeNotice.getCreatedAt())
+                .build();
+    }
 }
