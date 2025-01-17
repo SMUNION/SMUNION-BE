@@ -30,9 +30,11 @@ public class SecurityConfig {
             "/v3/api-docs/**",    // Allow access to OpenAPI docs
             "/swagger-ui/**",     // Allow access to Swagger UI
             "/swagger-ui.html" ,
+            "/swagger-resources/**",
             "/api/email/send/signup",
             "/api/v1/users/signup", //회원가입은 인증이 필요하지 않음
-            "/api/v1/users/login" //로그인은 인증이 필요하지 않음
+            "/api/v1/users/login", //로그인은 인증이 필요하지 않음
+            "/api/v1/users/refresh" //accessToken 재발급은 인증이 필요하지 않음
     };
 
     @Bean //인증 관리자 관련 설정
