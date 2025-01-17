@@ -30,23 +30,32 @@ public class FeeQueryService {
     private final MemberClubRepository memberClubRepository;
 
     public FeeResDTO.FeeNoticeListResponse getFeeNotices(
-            Long clubId, Long cursor, int offset, Long memberClubId) {
+            Long clubId, Long cursor, int size, Long memberClubId) {
 
-        // 1. 통합된 메서드로 데이터 조회
+        // 1. MemberClub 검증 (사용자가 해당 동아리 멤버인지 확인)
+        MemberClub memberClub = memberClubRepository.findById(memberClubId)
+                .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.MEMBER_CLUB_NOT_FOUND));
+
+        // 2. 사용자가 요청한 clubId와 memberClub의 clubId가 일치하는지 확인
+        if (!memberClub.getClub().getId().equals(clubId)) {
+            throw new FeeException(FeeErrorCode.ACCESS_DENIED);
+        }
+
+        // 3. 회비 공지 데이터 조회 (통합 메서드 사용)
         List<FeeNotice> feeNotices = feeNoticeRepository.findByClubIdWithCursor(
-                clubId, cursor, PageRequest.of(0, offset)
+                clubId, cursor, PageRequest.of(0, size)
         );
 
-        // 2. DTO 변환
+        // 4. DTO 변환
         List<FeeResDTO.FeeNoticeResponse> fees = feeNotices.stream()
                 .map(FeeNoticeConverter::toFeeNoticeResponse)
                 .toList();
 
-        // 3. 다음 페이지 여부 확인
-        boolean hasNext = feeNotices.size() == offset;
+        // 5. 다음 페이지 여부 확인
+        boolean hasNext = feeNotices.size() == size;
         Long nextCursor = hasNext ? feeNotices.get(feeNotices.size() - 1).getId() : null;
 
-        // 4. 결과 반환
+        // 6. 결과 반환
         return new FeeResDTO.FeeNoticeListResponse(fees, hasNext, nextCursor);
     }
 
