@@ -13,6 +13,8 @@ import com.project.smunionbe.domain.club.entity.Gallery;
 import com.project.smunionbe.domain.club.exception.*;
 import com.project.smunionbe.domain.club.repository.ClubRepository;
 import com.project.smunionbe.domain.club.repository.DepartmentRepository;
+import com.project.smunionbe.domain.member.entity.MemberClub;
+import com.project.smunionbe.domain.member.repository.MemberClubRepository;
 import com.project.smunionbe.global.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,15 +32,18 @@ public class DepartmentCommandService {
     private final ClubRepository clubRepository;
     private final DepartmentRepository departmentRepository;
     private final RedisUtil redisUtil;
+    private final MemberClubRepository memberClubRepository;
     private static final long CODE_EXPIRATION_DAYS = 1L;
 
-    public DepartmentResDTO.CreateDepartmentDTO createDepartment(DepartmentReqDTO.CreateDepartmentDTO request) {
+    public DepartmentResDTO.CreateDepartmentDTO createDepartment(DepartmentReqDTO.CreateDepartmentDTO request, Long memberId) {
 
-        /*// 권한 확인 코드 추가 필요
+
         MemberClub memberClub = memberClubRepository.findByMemberIdAndClubId(memberId, request.clubId());
         if(!memberClub.is_Staff()) {
             throw new ClubException(ClubErrorCode.ACCESS_DENIED);
-        }*/
+        }
+
+
         Club club = clubRepository.findById(request.clubId())
                 .orElseThrow(() -> new ClubException(ClubErrorCode.CLUB_NOT_FOUND));
 
@@ -56,23 +61,29 @@ public class DepartmentCommandService {
         Department department = departmentRepository.findById(departmentId)
                 .orElseThrow(() -> new DepartmentException(DepartmentErrorCode.DEPARTMENT_NOT_FOUND));
 
-        /*// 권한 확인 코드 추가 필요
+
         MemberClub memberClub = memberClubRepository.findByMemberIdAndClubId(memberId, department.getClub().getId());
         if(!memberClub.is_Staff()) {
             throw new ClubException(ClubErrorCode.ACCESS_DENIED);
-        }*/
+        }
 
         if (!clubRepository.existsByid(department.getClub().getId())) {
             throw new ClubException(ClubErrorCode.CLUB_NOT_FOUND);
         }
-        /*if (!memberClubRepository.existsByMemberIdAndClubId(memberId, gallery.getClub().getId())) {
-            throw new ClubException(ClubErrorCode.ACCESS_DENIED);
-        }*/
+
 
         departmentRepository.delete(department);
     }
 
-    public String createInviteCode(String departmentId) {
+    public String createInviteCode(String departmentId, Long memberId) {
+        Department department = departmentRepository.findById(Long.valueOf(departmentId))
+                .orElseThrow(() -> new DepartmentException(DepartmentErrorCode.DEPARTMENT_NOT_FOUND));
+
+        MemberClub memberClub = memberClubRepository.findByMemberIdAndClubId(memberId, department.getClub().getId());
+        if(!memberClub.is_Staff()) {
+            throw new ClubException(ClubErrorCode.ACCESS_DENIED);
+        }
+
         if (hasInviteCode(departmentId)) {
             throw new DepartmentException(DepartmentErrorCode.INVITECODE_ALREADY_EXIST);
         }

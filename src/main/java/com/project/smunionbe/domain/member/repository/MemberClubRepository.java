@@ -42,9 +42,10 @@ public interface MemberClubRepository extends JpaRepository<MemberClub, Long> {
     @Query("SELECT mc FROM MemberClub mc WHERE mc.member.id = :memberId ORDER BY mc.id")
     List<MemberClub> findByMemberId(@Param("memberId") Long memberId, Pageable pageable);
 
-
-
     boolean existsByMemberIdAndClubId(Long memberId, Long clubId);
 
     boolean existsByClubId(Long clubId);
+
+    boolean existsByMemberId(Long memberId);
+
 }
