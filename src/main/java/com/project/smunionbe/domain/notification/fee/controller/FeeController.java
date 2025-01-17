@@ -59,4 +59,17 @@ public class FeeController {
 
         return CustomResponse.onSuccess(response);
     }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "회비 공지 상세 조회 API", description = "특정 회비 공지의 상세 정보를 조회합니다.")
+    public CustomResponse<FeeResDTO.FeeNoticeResponse> getFeeNoticeDetail(
+            @PathVariable("id") Long feeId,
+            @AuthenticationPrincipal CustomUserDetails authMember,
+            HttpSession session) {
+
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, authMember.getMember().getId());
+        FeeResDTO.FeeNoticeResponse response = feeQueryService.getFeeNoticeDetail(feeId, selectedMemberClubId);
+
+        return CustomResponse.onSuccess(response);
+    }
 }
