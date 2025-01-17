@@ -1,9 +1,7 @@
 package com.project.smunionbe.global.config.jwt;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.smunionbe.domain.member.exception.AuthErrorCode;
-import com.project.smunionbe.domain.member.exception.AuthException;
 import com.project.smunionbe.global.apiPayload.CustomResponse;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -22,53 +20,60 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     private final static String HEADER_AUTHORIZATION = "Authorization";
     private final static String TOKEN_PREFIX = "Bearer ";
 
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String requestURI = request.getRequestURI();
+
+        return requestURI.startsWith("/swagger-ui") ||
+                requestURI.startsWith("/v3/api-docs") ||
+                requestURI.startsWith("/swagger-resources") ||
+                requestURI.startsWith("/swagger-ui.html") ||
+                requestURI.startsWith("/api/v1/users/login") ||  // ✅ 로그인 API 필터링 제외
+                requestURI.startsWith("/api/v1/users/signup");   // ✅ 회원가입 API 필터링 제외
+    }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        //요청 헤더의 Authorization 키의 값 조회
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         String authorizationHeader = request.getHeader(HEADER_AUTHORIZATION);
-
-        //가져온 값에서 접두사 제거
         String token = getAccessToken(authorizationHeader);
 
-        //가져온 토큰이 유효한지 확인하고, 유효한 때에는 인증 정보 설정
-        if (tokenProvider.validToken(token)) {
+        if (token != null && tokenProvider.validToken(token, "access")) {
             Authentication authentication = tokenProvider.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } else {
-            // 토큰이 만료되었거나 유효하지 않은 경우 구분하여 응답 처리
-            if (tokenProvider.isTokenExpired(token)) {  // 만료된 토큰 확인
-                CustomResponse<Object> customResponse = CustomResponse.onFailure(
-                        String.valueOf(AuthErrorCode.JWT_TOKEN_EXPIRED.getStatus().value()),  // 상태 코드
-                        AuthErrorCode.JWT_TOKEN_EXPIRED.getMessage()  // 만료된 토큰 에러 메시지
-                );
-
-                response.setStatus(AuthErrorCode.JWT_TOKEN_EXPIRED.getStatus().value());
-                response.setCharacterEncoding("UTF-8");
-                response.setContentType("application/json; charset=UTF-8");
-                response.getWriter().write(new ObjectMapper().writeValueAsString(customResponse));
-            } else {
-                CustomResponse<Object> customResponse = CustomResponse.onFailure(
-                        String.valueOf(AuthErrorCode.JWT_TOKEN_INVALID.getStatus().value()),  // 상태 코드
-                        AuthErrorCode.JWT_TOKEN_INVALID.getMessage()  // 유효하지 않은 토큰 에러 메시지
-                );
-
-                response.setStatus(AuthErrorCode.JWT_TOKEN_INVALID.getStatus().value());
-                response.setCharacterEncoding("UTF-8");
-                response.setContentType("application/json; charset=UTF-8");
-                response.getWriter().write(new ObjectMapper().writeValueAsString(customResponse));
-            }
-            return; // 더 이상 필터 체인 진행하지 않도록 설정
+            handleInvalidToken(response, token);
+            return; // 필터 체인 중단
         }
 
         filterChain.doFilter(request, response);
     }
-
 
     private String getAccessToken(String authorizationHeader) {
         if (authorizationHeader != null && authorizationHeader.startsWith(TOKEN_PREFIX)) {
             return authorizationHeader.substring(TOKEN_PREFIX.length());
         }
         return null;
+    }
+
+    private void handleInvalidToken(HttpServletResponse response, String token) throws IOException {
+        CustomResponse<Object> customResponse;
+        if (token == null || tokenProvider.isTokenExpired(token)) {
+            customResponse = CustomResponse.onFailure(
+                    String.valueOf(AuthErrorCode.JWT_TOKEN_EXPIRED.getStatus().value()),
+                    AuthErrorCode.JWT_TOKEN_EXPIRED.getMessage()
+            );
+            response.setStatus(AuthErrorCode.JWT_TOKEN_EXPIRED.getStatus().value());
+        } else {
+            customResponse = CustomResponse.onFailure(
+                    String.valueOf(AuthErrorCode.JWT_TOKEN_INVALID.getStatus().value()),
+                    AuthErrorCode.JWT_TOKEN_INVALID.getMessage()
+            );
+            response.setStatus(AuthErrorCode.JWT_TOKEN_INVALID.getStatus().value());
+        }
+
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("application/json; charset=UTF-8");
+        response.getWriter().write(new ObjectMapper().writeValueAsString(customResponse));
     }
 }

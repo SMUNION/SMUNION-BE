@@ -21,7 +21,7 @@ public class TokenService {
     public String createNewAccessTokenForMember(Member member) {
         // 액세스 토큰 생성 (유효시간 2시간 설정)
         //return tokenProvider.generateToken(member, Duration.ofHours(2));
-        return tokenProvider.generateToken(member, Duration.ofSeconds(60));
+        return tokenProvider.generateAccessToken(member, Duration.ofSeconds(60));
     }
 
     // 회원을 기반으로 새로운 리프레시 토큰 생성
@@ -29,7 +29,7 @@ public class TokenService {
         if (refreshTokenService.existsByMemberId(member.getId())) {
             refreshTokenService.deleteByMemberId(member.getId());
         }
-        String refreshToken = tokenProvider.generateToken(member, Duration.ofDays(7)); // 리프레시 토큰 유효시간: 7일
+        String refreshToken = tokenProvider.generateRefreshToken(member, Duration.ofDays(7)); // 리프레시 토큰 유효시간: 7일
         refreshTokenService.saveRefreshToken(member, refreshToken); // 리프레시 토큰 저장
         return refreshToken;
     }
@@ -37,20 +37,20 @@ public class TokenService {
     // 리프레시 토큰을 기반으로 새로운 액세스 토큰 생성
     public String createNewAccessToken(String refreshToken) {
         //토큰 유효성 검사에 실패하면 예외 발생
-        if (!tokenProvider.validToken(refreshToken)) {
+        if (!tokenProvider.validToken(refreshToken, "refresh")) {
             throw new AuthException(AuthErrorCode.REFRESH_TOKEN_INVALID);
         }
 
         Long memberId = refreshTokenService.findByRefreshToken(refreshToken).getMemberId();
         Member member = memberService.findById(memberId);
 
-        return tokenProvider.generateToken(member, Duration.ofHours(2)); //토큰의 유효시간을 두시간으로 설정
+        return tokenProvider.generateAccessToken(member, Duration.ofHours(2)); //토큰의 유효시간을 두시간으로 설정
     }
 
     // 로그아웃 처리
     public void logout(String accessToken) {
         // Access Token 유효성 검사
-        if (!tokenProvider.validToken(accessToken)) {
+        if (!tokenProvider.validToken(accessToken, "access")) {
             throw new AuthException(AuthErrorCode.JWT_TOKEN_INVALID);
         }
 

@@ -27,13 +27,19 @@ public class TokenProvider {
     private final JwtProperties jwtProperties;
     private final MemberRepository memberRepository;
 
-    public String generateToken(Member member, Duration expiredAt) {
+    public String generateAccessToken(Member member, Duration expiredAt) {
         Date now = new Date();
-        return makeToken(new Date(now.getTime() + expiredAt.toMillis()), member);
+        return makeToken(new Date(now.getTime() + expiredAt.toMillis()), member, "access");
     }
 
+    public String generateRefreshToken(Member member, Duration expiredAt) {
+        Date now = new Date();
+        return makeToken(new Date(now.getTime() + expiredAt.toMillis()), member, "refresh");
+    }
+
+
     //JWT 토큰 생성 메서드
-    private String makeToken(Date expiry, Member member) {
+    private String makeToken(Date expiry, Member member, String tokenType) {
         Date now = new Date();
 
         return Jwts.builder()
@@ -42,6 +48,7 @@ public class TokenProvider {
                 .setIssuedAt(now)
                 .setExpiration(expiry)
                 .setSubject(member.getEmail())
+                .claim("tokenType", tokenType) //accessToken과 refreshToken 구분
                 .claim("id", member.getId())
                 .signWith(SignatureAlgorithm.HS256, jwtProperties.getSecretKey())
                 .compact();
@@ -50,13 +57,17 @@ public class TokenProvider {
 
 
     //JWT 토큰 유효성 검증 메서드
-    public boolean validToken(String token) {
+    public boolean validToken(String token, String expectedTokenType) {
         try {
-            Jwts.parser()
-                    .setSigningKey(jwtProperties.getSecretKey()).build() //비밀값으로 복호화
-                    .parseClaimsJws(token);
+            Claims claims = Jwts.parser()
+                    .setSigningKey(jwtProperties.getSecretKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
 
-            return true;
+            // 토큰 타입 확인
+            String tokenType = claims.get("tokenType", String.class);
+            return tokenType != null && tokenType.equals(expectedTokenType);
         } catch (Exception e) { //복호화 과정에서 에러가 나면 유효하지 않은 토큰
             return false;
         }
