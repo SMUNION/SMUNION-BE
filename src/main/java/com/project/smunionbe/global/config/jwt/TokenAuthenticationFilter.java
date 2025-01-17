@@ -24,10 +24,16 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String requestURI = request.getRequestURI();
 
-        return requestURI.startsWith("/swagger-ui") ||
-                requestURI.startsWith("/v3/api-docs") ||
-                requestURI.startsWith("/swagger-resources") ||
-                requestURI.startsWith("/swagger-ui.html") ||
+        // OPTIONS 요청은 모든 경로에서 허용
+        if (HttpMethod.OPTIONS.matches(request.getMethod())) {
+            return true;
+        }
+
+        return requestURI.startsWith("/swagger-ui/**") ||
+                requestURI.startsWith("/v3/api-docs/**") ||
+                requestURI.startsWith("/swagger-resources/**") ||
+                requestURI.startsWith("/swagger-ui.html/**") ||
+                requestURI.startsWith("/api/email/send/signup") ||
                 requestURI.startsWith("/api/v1/users/login") ||  //  로그인 API 필터링 제외
                 requestURI.startsWith("/api/v1/users/signup") ||   //  회원가입 API 필터링 제외
                 requestURI.startsWith("/api/v1/users/refresh");   //  Access Token 재발급 API 필터링 제외
