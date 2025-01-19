@@ -46,15 +46,13 @@ public class FeeController {
     @GetMapping("")
     @Operation(summary = "회비 공지 목록 조회 API", description = "특정 동아리의 회비 공지 목록을 커서 기반 페이지네이션으로 조회합니다.")
     public CustomResponse<FeeResDTO.FeeNoticeListResponse> getFeeNotices(
-            @RequestParam("id") Long clubId,
             @RequestParam(value = "cursor", required = false) Long cursor,
             @RequestParam(value = "size", defaultValue = "10") int size,
             @AuthenticationPrincipal CustomUserDetails authMember,
             HttpSession session) {
 
         Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, authMember.getMember().getId());
-        FeeResDTO.FeeNoticeListResponse response =
-                feeQueryService.getFeeNotices(clubId, cursor, size, selectedMemberClubId);
+        FeeResDTO.FeeNoticeListResponse response = feeQueryService.getFeeNotices(cursor, size, selectedMemberClubId);
 
         return CustomResponse.onSuccess(response);
     }

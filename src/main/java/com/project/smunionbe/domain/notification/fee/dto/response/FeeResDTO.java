@@ -20,6 +20,7 @@ public class FeeResDTO {
             Long feeId,
             String title,
             String content,
+            String target,
             int amount,
             String bank,
             String accountNumber,

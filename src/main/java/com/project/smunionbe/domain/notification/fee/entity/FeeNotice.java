@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -48,7 +49,8 @@ public class FeeNotice extends BaseEntity {
     @Column(name = "participant_count")
     private int participantCount;
 
-    public void update(String title, String content, int amount, String bank, String accountNumber, LocalDateTime date, int participantCount) {
+    public void update(String title, String content, int amount, String bank, String accountNumber,
+                       LocalDateTime date, int participantCount, String target) {
         this.title = title;
         this.content = content;
         this.amount = amount;
@@ -56,6 +58,7 @@ public class FeeNotice extends BaseEntity {
         this.accountNumber = accountNumber;
         this.date = date;
         this.participantCount = participantCount;
+        this.target = target;
     }
 }
 

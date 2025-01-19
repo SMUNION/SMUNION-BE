@@ -58,6 +58,7 @@ public class VoteQueryService {
                         vote.getId(),
                         vote.getTitle(),
                         vote.getContent(),
+                        vote.getTarget(),
                         vote.getDate(),
                         vote.isAllowDuplicate(),
                         vote.isAnonymous(),
@@ -92,6 +93,7 @@ public class VoteQueryService {
                 voteNotice.getId(),
                 voteNotice.getTitle(),
                 voteNotice.getContent(),
+                voteNotice.getTarget(),
                 voteNotice.getDate(),
                 voteNotice.isAllowDuplicate(),
                 voteNotice.isAnonymous(),
@@ -108,6 +110,11 @@ public class VoteQueryService {
         // 2. 투표 공지 조회
         VoteNotice voteNotice = voteNoticeRepository.findById(voteId)
                 .orElseThrow(() -> new VoteException(VoteErrorCode.VOTE_NOT_FOUND));
+
+        // 권한 검증
+        if (!memberClub.getClub().equals(voteNotice.getClub())) {
+            throw new VoteException(VoteErrorCode.ACCESS_DENIED);
+        }
 
         // 3. 투표 결과 조회
         List<VoteStatus> statuses = voteStatusRepository.findByVoteNoticeId(voteId);

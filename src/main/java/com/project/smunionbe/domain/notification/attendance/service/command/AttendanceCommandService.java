@@ -13,14 +13,15 @@ import com.project.smunionbe.domain.notification.attendance.exception.Attendance
 import com.project.smunionbe.domain.notification.attendance.repository.AttendanceRepository;
 import com.project.smunionbe.domain.notification.attendance.repository.AttendanceStatusRepository;
 import com.project.smunionbe.domain.notification.fcm.service.event.FCMNotificationService;
-import com.project.smunionbe.domain.notification.fee.exception.FeeErrorCode;
-import com.project.smunionbe.domain.notification.fee.exception.FeeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -86,6 +87,7 @@ public class AttendanceCommandService {
             throw new AttendanceException(AttendanceErrorCode.ACCESS_DENIED);
         }
 
+        // 2. AttendanceNotice 조회
         AttendanceNotice attendanceNotice = attendanceRepository.findById(attendanceId)
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ATTENDANCE_NOT_FOUND));
 
@@ -94,7 +96,56 @@ public class AttendanceCommandService {
             throw new AttendanceException(AttendanceErrorCode.ACCESS_DENIED);
         }
 
-        attendanceNotice.update(request.title(), request.content(), request.target(), request.date());
+        // 3. 새로운 타겟 멤버 조회
+        List<String> targetDepartments = (request.targetDepartments() == null || request.targetDepartments().isEmpty())
+                ? List.of("전체") // targetDepartments가 null 또는 비어 있으면 "전체" 설정
+                : request.targetDepartments();
+
+        List<MemberClub> newTargetMembers = targetDepartments.contains("전체")
+                ? memberClubRepository.findAllByClubId(attendanceNotice.getClub().getId()) // 전체 멤버
+                : memberClubRepository.findAllByClubIdAndDepartments(
+                attendanceNotice.getClub().getId(),
+                targetDepartments
+        );
+
+        if (newTargetMembers.isEmpty()) {
+            throw new AttendanceException(AttendanceErrorCode.NO_TARGET_MEMBERS);
+        }
+
+        // 4. 기존 AttendanceStatus 조회
+        List<AttendanceStatus> existingStatuses = attendanceStatusRepository.findAllByAttendanceNotice(attendanceNotice);
+        Map<Long, AttendanceStatus> existingStatusMap = existingStatuses.stream()
+                .collect(Collectors.toMap(status -> status.getMemberClub().getId(), status -> status));
+
+        // 5. 상태 업데이트 (기존 상태 갱신 + 새로운 상태 추가)
+        for (MemberClub member : newTargetMembers) {
+            AttendanceStatus status = existingStatusMap.get(member.getId());
+            if (status == null) {
+                // 새로운 멤버 상태 생성
+                attendanceStatusRepository.save(AttendanceStatus.builder()
+                        .attendanceNotice(attendanceNotice)
+                        .memberClub(member)
+                        .isPresent(false) // 초기 상태
+                        .build());
+            }
+        }
+
+        // 6. 유효하지 않은 멤버 상태 삭제
+        List<AttendanceStatus> toRemove = existingStatuses.stream()
+                .filter(status -> !newTargetMembers.contains(status.getMemberClub()))
+                .toList();
+        attendanceStatusRepository.deleteAll(toRemove);
+
+        // 7. AttendanceNotice 수정
+        attendanceNotice.update(
+                request.title(),
+                request.content(),
+                targetDepartments.contains("전체") ? "전체" : String.join(",", targetDepartments), // "전체" 처리
+                request.date()
+        );
+
+        // 8. 로그 기록
+        log.info("출석 공지가 수정되었습니다. attendanceId: {}, memberClubId: {}", attendanceId, selectedMemberClubId);
     }
 
     public void deleteAttendance(Long attendanceId, Long selectedMemberClubId) {
@@ -114,6 +165,7 @@ public class AttendanceCommandService {
             throw new AttendanceException(AttendanceErrorCode.ACCESS_DENIED);
         }
 
+        attendanceStatusRepository.deleteAllByAttendanceNoticeId(attendanceId);
         attendanceRepository.delete(attendanceNotice);
     }
 
