@@ -111,4 +111,17 @@ public class FeeController {
 
         return CustomResponse.onSuccess(HttpStatus.OK, "회비 공지가 성공적으로 수정되었습니다.");
     }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "회비 공지 삭제 API", description = "운영진만 회비 공지를 삭제할 수 있습니다.")
+    public CustomResponse<String> deleteFeeNotice(
+            @PathVariable("id") Long feeId,
+            @AuthenticationPrincipal CustomUserDetails authMember,
+            HttpSession session) {
+
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, authMember.getMember().getId());
+        feeCommandService.deleteFeeNotice(feeId, selectedMemberClubId);
+
+        return CustomResponse.onSuccess(HttpStatus.OK, "회비 공지가 성공적으로 삭제되었습니다.");
+    }
 }
