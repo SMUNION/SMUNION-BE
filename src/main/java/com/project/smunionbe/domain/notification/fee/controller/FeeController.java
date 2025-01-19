@@ -97,4 +97,18 @@ public class FeeController {
 
         return CustomResponse.onSuccess(HttpStatus.OK, "회비 납부 상태가 성공적으로 업데이트되었습니다.");
     }
+
+    @PatchMapping("/{id}")
+    @Operation(summary = "회비 공지 수정 API", description = "운영진만 회비 공지를 수정할 수 있습니다.")
+    public CustomResponse<String> updateFeeNotice(
+            @PathVariable("id") Long feeId,
+            @RequestBody @Valid FeeReqDTO.UpdateFeeNoticeRequest request,
+            @AuthenticationPrincipal CustomUserDetails authMember,
+            HttpSession session) {
+
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, authMember.getMember().getId());
+        feeCommandService.updateFeeNotice(feeId, request, selectedMemberClubId);
+
+        return CustomResponse.onSuccess(HttpStatus.OK, "회비 공지가 성공적으로 수정되었습니다.");
+    }
 }

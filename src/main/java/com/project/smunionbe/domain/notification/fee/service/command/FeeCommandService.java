@@ -30,9 +30,13 @@ public class FeeCommandService {
     private final FeeStatusRepository feeStatusRepository;
 
     public void createFeeNotice(FeeReqDTO.CreateFeeNoticeRequestDTO request, Long memberClubId) {
-        // 1. MemberClub 확인
+        // 1. MemberClub 조회 및 운영진 여부 검증
         MemberClub memberClub = memberClubRepository.findById(memberClubId)
                 .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.MEMBER_CLUB_NOT_FOUND));
+
+        if (!memberClub.is_Staff()) {
+            throw new FeeException(FeeErrorCode.ACCESS_DENIED);
+        }
 
         // 2. 동아리 정보 추출
         Club club = memberClub.getClub();
@@ -68,5 +72,32 @@ public class FeeCommandService {
         feeStatusRepository.save(feeStatus);
 
         log.info("회비 납부 상태가 업데이트되었습니다. feeId: {}, memberClubId: {}", feeId, memberClubId);
+    }
+
+    public void updateFeeNotice(Long feeId, FeeReqDTO.UpdateFeeNoticeRequest request, Long memberClubId) {
+        // 1. MemberClub 조회 및 운영진 여부 검증
+        MemberClub memberClub = memberClubRepository.findById(memberClubId)
+                .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.MEMBER_CLUB_NOT_FOUND));
+
+        if (!memberClub.is_Staff()) {
+            throw new FeeException(FeeErrorCode.ACCESS_DENIED);
+        }
+
+        // 2. FeeNotice 조회
+        FeeNotice feeNotice = feeNoticeRepository.findById(feeId)
+                .orElseThrow(() -> new FeeException(FeeErrorCode.FEE_NOTICE_NOT_FOUND));
+
+        // 3. FeeNotice 수정
+        feeNotice.update(
+                request.title(),
+                request.content(),
+                request.amount(),
+                request.bank(),
+                request.accountNumber(),
+                request.date(),
+                request.participantCount()
+        );
+
+        log.info("회비 공지가 수정되었습니다. feeId: {}, memberClubId: {}", feeId, memberClubId);
     }
 }

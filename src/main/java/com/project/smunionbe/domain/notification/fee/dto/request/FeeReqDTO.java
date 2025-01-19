@@ -18,4 +18,16 @@ public class FeeReqDTO {
             Integer participantCount
     ){
     }
+
+    @Builder
+    public record UpdateFeeNoticeRequest(
+            String title,
+            String content,
+            Integer amount,
+            String bank,
+            String accountNumber,
+            LocalDateTime date,
+            Integer participantCount
+    ) {
+    }
 }

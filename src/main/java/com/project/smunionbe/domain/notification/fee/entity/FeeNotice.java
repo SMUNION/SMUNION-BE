@@ -47,5 +47,15 @@ public class FeeNotice extends BaseEntity {
 
     @Column(name = "participant_count")
     private int participantCount;
+
+    public void update(String title, String content, int amount, String bank, String accountNumber, LocalDateTime date, int participantCount) {
+        this.title = title;
+        this.content = content;
+        this.amount = amount;
+        this.bank = bank;
+        this.accountNumber = accountNumber;
+        this.date = date;
+        this.participantCount = participantCount;
+    }
 }
 
