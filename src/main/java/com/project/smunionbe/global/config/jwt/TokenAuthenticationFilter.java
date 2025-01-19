@@ -27,9 +27,9 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         return requestURI.equals("") ||
            requestURI.equals("/") ||  // 루트 경로 "/" 인증 제외
            requestURI.equals("/favicon.ico") ||  // 파비콘 요청 인증 제외
-           requestURI.startsWith("/swagger-ui/") ||     
-           requestURI.startsWith("/v3/api-docs/") ||    
-           requestURI.startsWith("/swagger-resources/") ||  
+           requestURI.startsWith("/swagger-ui") ||     
+           requestURI.startsWith("/v3/api-docs") ||    
+           requestURI.startsWith("/swagger-resources") ||  
            requestURI.startsWith("/swagger-ui.html") ||  
            requestURI.startsWith("/api/email/send/signup") ||  
            requestURI.startsWith("/api/v1/users/signup") ||  //  로그인 API 필터링 제외
