@@ -16,7 +16,7 @@ public class AttendanceReqDTO {
     public record UpdateAttendanceRequest(
             String title,
             String content,
-            String target,
+            List<String> targetDepartments,
             LocalDateTime date
     ){
     }

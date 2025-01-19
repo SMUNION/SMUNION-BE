@@ -35,9 +35,13 @@ public class VoteCommandService {
     private final FCMNotificationService fcmNotificationService;
 
     public void createVoteNotice(VoteReqDTO.CreateVoteDTO request, Long selectedMemberClubId) {
-        // 1. MemberClub 조회
+        // 1. MemberClub 조회 및 운영진 여부 검증
         MemberClub memberClub = memberClubRepository.findById(selectedMemberClubId)
                 .orElseThrow(() -> new VoteException(VoteErrorCode.MEMBER_NOT_FOUND));
+
+        if(!memberClub.is_Staff()) {
+            throw new VoteException(VoteErrorCode.ACCESS_DENIED);
+        }
 
         Long clubId = memberClub.getClub().getId();
 
@@ -129,9 +133,13 @@ public class VoteCommandService {
     }
 
     public void updateVote(Long voteId, VoteReqDTO.UpdateVoteDTO request, Long selectedMemberClubId) {
-        // 1. MemberClub 조회
+        // 1. MemberClub 조회 및 운영진 여부 검증
         MemberClub memberClub = memberClubRepository.findById(selectedMemberClubId)
                 .orElseThrow(() -> new VoteException(VoteErrorCode.MEMBER_NOT_FOUND));
+
+        if(!memberClub.is_Staff()) {
+            throw new VoteException(VoteErrorCode.ACCESS_DENIED);
+        }
 
         // 2. 투표 공지 조회
         VoteNotice voteNotice = voteNoticeRepository.findById(voteId)
@@ -162,9 +170,13 @@ public class VoteCommandService {
     }
 
     public void deleteVoteNotice(Long voteId, Long selectedMemberClubId) {
-        // 1. MemberClub 조회
+        // 1. MemberClub 조회 및 운영진 여부 검증
         MemberClub memberClub = memberClubRepository.findById(selectedMemberClubId)
                 .orElseThrow(() -> new VoteException(VoteErrorCode.MEMBER_NOT_FOUND));
+
+        if(!memberClub.is_Staff()) {
+            throw new VoteException(VoteErrorCode.ACCESS_DENIED);
+        }
 
         // 2. 투표 공지 조회
         VoteNotice voteNotice = voteNoticeRepository.findById(voteId)
