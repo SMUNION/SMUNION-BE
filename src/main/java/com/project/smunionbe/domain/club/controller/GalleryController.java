@@ -7,12 +7,14 @@ import com.project.smunionbe.domain.club.dto.response.GalleryResDTO;
 import com.project.smunionbe.domain.club.service.command.GalleryCommandService;
 import com.project.smunionbe.domain.club.service.query.GalleryQueryService;
 import com.project.smunionbe.domain.member.security.CustomUserDetails;
+import com.project.smunionbe.domain.member.service.ClubSelectionService;
 import com.project.smunionbe.domain.notification.attendance.dto.response.AttendanceResDTO;
 import com.project.smunionbe.global.apiPayload.CustomResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +29,8 @@ import org.springframework.web.bind.annotation.*;
 public class GalleryController {
     private final GalleryCommandService galleryCommandService;
     private final GalleryQueryService galleryQueryService;
+    private final ClubSelectionService clubSelectionService;
+
     @PostMapping("/create/{clubId}")
     @Operation(
             summary = "갤러리 생성 API",
@@ -34,11 +38,13 @@ public class GalleryController {
     )
     public CustomResponse<GalleryResDTO.CreateGalleryResDTO> createGallery(
             @RequestBody @Valid GalleryReqDTO.CreateGalleryDTO request,
-            @PathVariable Long clubId,
-            @AuthenticationPrincipal CustomUserDetails auth
-    ) {
+            @AuthenticationPrincipal CustomUserDetails auth,
+            HttpSession session
 
-        GalleryResDTO.CreateGalleryResDTO response = galleryCommandService.createGallery(request, clubId, auth.getMember().getId());
+    ) {
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, auth.getMember().getId());
+
+        GalleryResDTO.CreateGalleryResDTO response = galleryCommandService.createGallery(request, selectedMemberClubId);
 
         return CustomResponse.onSuccess(response);
 
@@ -52,9 +58,13 @@ public class GalleryController {
     public CustomResponse<String> updateGallery(
             @PathVariable Long galleryId,
             @AuthenticationPrincipal CustomUserDetails auth,
-            @RequestBody @Valid GalleryReqDTO.UpdateGalleryRequest request
+            @RequestBody @Valid GalleryReqDTO.UpdateGalleryRequest request,
+            HttpSession session
+
     ) {
-        galleryCommandService.updateGallery(galleryId, request, auth.getMember().getId());
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, auth.getMember().getId());
+
+        galleryCommandService.updateGallery(galleryId, request, selectedMemberClubId);
         return CustomResponse.onSuccess("동아리 수정 성공");
     }
 
@@ -65,24 +75,31 @@ public class GalleryController {
     )
     public CustomResponse<GalleryResDTO.GetGalleryResDTO> getGallery(
             @PathVariable Long galleryId,
-            @AuthenticationPrincipal CustomUserDetails auth
+            @AuthenticationPrincipal CustomUserDetails auth,
+            HttpSession session
+
     ) {
-        GalleryResDTO.GetGalleryResDTO response = galleryQueryService.getGallery(galleryId, auth.getMember().getId());
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, auth.getMember().getId());
+
+        GalleryResDTO.GetGalleryResDTO response = galleryQueryService.getGallery(galleryId, selectedMemberClubId);
         return CustomResponse.onSuccess(response);
     }
 
-    @GetMapping("/getAll/{clubId}")
+    @GetMapping("/getAll")
     @Operation(
             summary = "갤러리 전제 조회 API",
             description = "특정 동아리의 모든 갤러리 내용을 조회합니다."
     )
 
     public CustomResponse<GalleryResDTO.GetGalleryListResDTO> getAllGallery(
-            @PathVariable Long clubId,
-            @AuthenticationPrincipal CustomUserDetails auth
+            @AuthenticationPrincipal CustomUserDetails auth,
+            HttpSession session
+
     ) {
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, auth.getMember().getId());
+
         GalleryResDTO.GetGalleryListResDTO response =
-                galleryQueryService.getAllGallery(clubId, auth.getMember().getId());
+                galleryQueryService.getAllGallery(selectedMemberClubId);
         return CustomResponse.onSuccess(response);
     }
 
@@ -93,9 +110,13 @@ public class GalleryController {
     )
     public CustomResponse<String> deleteGallery(
             @PathVariable Long galleryId,
-            @AuthenticationPrincipal CustomUserDetails auth
+            @AuthenticationPrincipal CustomUserDetails auth,
+            HttpSession session
+
     ) {
-        galleryCommandService.deleteGallery(galleryId, auth.getMember().getId());
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, auth.getMember().getId());
+
+        galleryCommandService.deleteGallery(galleryId, selectedMemberClubId);
         return CustomResponse.onSuccess("갤러리가 성공적으로 삭제되었습니다.");
     }
 

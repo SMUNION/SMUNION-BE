@@ -2,18 +2,16 @@ package com.project.smunionbe.domain.club.service.command;
 
 
 import com.project.smunionbe.domain.club.converter.DepartmentConverter;
-import com.project.smunionbe.domain.club.converter.GalleryConverter;
 import com.project.smunionbe.domain.club.dto.request.DepartmentReqDTO;
-import com.project.smunionbe.domain.club.dto.request.GalleryReqDTO;
 import com.project.smunionbe.domain.club.dto.response.DepartmentResDTO;
-import com.project.smunionbe.domain.club.dto.response.GalleryResDTO;
 import com.project.smunionbe.domain.club.entity.Club;
 import com.project.smunionbe.domain.club.entity.Department;
-import com.project.smunionbe.domain.club.entity.Gallery;
 import com.project.smunionbe.domain.club.exception.*;
 import com.project.smunionbe.domain.club.repository.ClubRepository;
 import com.project.smunionbe.domain.club.repository.DepartmentRepository;
 import com.project.smunionbe.domain.member.entity.MemberClub;
+import com.project.smunionbe.domain.member.exception.MemberClubErrorCode;
+import com.project.smunionbe.domain.member.exception.MemberClubException;
 import com.project.smunionbe.domain.member.repository.MemberClubRepository;
 import com.project.smunionbe.global.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +20,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -35,16 +34,17 @@ public class DepartmentCommandService {
     private final MemberClubRepository memberClubRepository;
     private static final long CODE_EXPIRATION_DAYS = 1L;
 
-    public DepartmentResDTO.CreateDepartmentDTO createDepartment(DepartmentReqDTO.CreateDepartmentDTO request, Long memberId) {
+    public DepartmentResDTO.CreateDepartmentDTO createDepartment(DepartmentReqDTO.CreateDepartmentDTO request, Long memberClubId) {
 
 
-        MemberClub memberClub = memberClubRepository.findByMemberIdAndClubId(memberId, request.clubId());
+        MemberClub memberClub = memberClubRepository.findById(memberClubId)
+                .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.INVALID_MEMBER_CLUB));
         if(!memberClub.is_Staff()) {
             throw new ClubException(ClubErrorCode.ACCESS_DENIED);
         }
 
-
-        Club club = clubRepository.findById(request.clubId())
+        Long clubId = memberClubRepository.findById(memberClubId).get().getClub().getId();
+        Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new ClubException(ClubErrorCode.CLUB_NOT_FOUND));
 
         if (departmentRepository.existsByName(request.name())) {
@@ -56,13 +56,14 @@ public class DepartmentCommandService {
 
     }
 
-    public void deleteDepartment(Long departmentId, Long memberId) {
+    public void deleteDepartment(Long departmentId, Long memberClubId) {
 
         Department department = departmentRepository.findById(departmentId)
                 .orElseThrow(() -> new DepartmentException(DepartmentErrorCode.DEPARTMENT_NOT_FOUND));
 
 
-        MemberClub memberClub = memberClubRepository.findByMemberIdAndClubId(memberId, department.getClub().getId());
+        MemberClub memberClub = memberClubRepository.findById(memberClubId)
+                .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.INVALID_MEMBER_CLUB));
         if(!memberClub.is_Staff()) {
             throw new ClubException(ClubErrorCode.ACCESS_DENIED);
         }
@@ -75,11 +76,12 @@ public class DepartmentCommandService {
         departmentRepository.delete(department);
     }
 
-    public String createInviteCode(String departmentId, Long memberId) {
+    public String createInviteCode(String departmentId, Long memberClubId) {
         Department department = departmentRepository.findById(Long.valueOf(departmentId))
                 .orElseThrow(() -> new DepartmentException(DepartmentErrorCode.DEPARTMENT_NOT_FOUND));
 
-        MemberClub memberClub = memberClubRepository.findByMemberIdAndClubId(memberId, department.getClub().getId());
+        MemberClub memberClub = memberClubRepository.findById(memberClubId)
+                .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.INVALID_MEMBER_CLUB));
         if(!memberClub.is_Staff()) {
             throw new ClubException(ClubErrorCode.ACCESS_DENIED);
         }

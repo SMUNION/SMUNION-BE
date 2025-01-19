@@ -22,12 +22,13 @@ import java.util.List;
 public class ClubQueryService {
     private final MemberClubRepository memberClubRepository;
     public ClubResDTO.GetMemberClubListResDTO getAllMemberClubList(
-            Long clubId,
-            Long memberId
+            Long memberClubId
     ) {
-        if (!memberClubRepository.existsByMemberIdAndClubId(clubId, memberId)) {
+        if (!memberClubRepository.existsById(memberClubId)) {
             throw new ClubException(ClubErrorCode.ACCESS_DENIED);
         }
+
+        Long clubId = memberClubRepository.findById(memberClubId).get().getClub().getId();
 
         // 데이터 변환
         List<ClubResDTO.MemberClubResponse> memberClubResponseList = memberClubRepository.findAllByClubId(clubId)

@@ -15,6 +15,8 @@ import com.project.smunionbe.domain.club.exception.GalleryException;
 import com.project.smunionbe.domain.club.repository.ClubRepository;
 import com.project.smunionbe.domain.club.repository.GalleryRepository;
 import com.project.smunionbe.domain.member.entity.MemberClub;
+import com.project.smunionbe.domain.member.exception.MemberClubErrorCode;
+import com.project.smunionbe.domain.member.exception.MemberClubException;
 import com.project.smunionbe.domain.member.repository.MemberClubRepository;
 import com.project.smunionbe.domain.notification.attendance.entity.AttendanceNotice;
 import com.project.smunionbe.domain.notification.attendance.exception.AttendanceErrorCode;
@@ -34,12 +36,13 @@ public class GalleryCommandService {
     private final ClubRepository clubRepository;
     private final MemberClubRepository memberClubRepository;
 
-    public GalleryResDTO.CreateGalleryResDTO createGallery(GalleryReqDTO.CreateGalleryDTO request, Long clubId, Long memberId) {
+    public GalleryResDTO.CreateGalleryResDTO createGallery(GalleryReqDTO.CreateGalleryDTO request, Long memberClubId) {
 
-        Club club = clubRepository.findById(clubId)
+        MemberClub memberClub = memberClubRepository.findById(memberClubId)
+                .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.INVALID_MEMBER_CLUB));
+
+        Club club = clubRepository.findById(memberClub.getClub().getId())
                 .orElseThrow(() -> new ClubException(ClubErrorCode.CLUB_NOT_FOUND));
-
-        MemberClub memberClub = memberClubRepository.findByMemberIdAndClubId(memberId, clubId);
         if(!memberClub.is_Staff()) {
             throw new ClubException(ClubErrorCode.ACCESS_DENIED);
         }
@@ -49,11 +52,12 @@ public class GalleryCommandService {
 
     }
 
-    public void deleteGallery(Long galleryId, Long memberId) {
+    public void deleteGallery(Long galleryId, Long memberClubId) {
         Gallery gallery = galleryRepository.findById(galleryId)
                 .orElseThrow(() -> new GalleryException(GalleryErrorCode.GALLERY_NOT_FOUND));
 
-        MemberClub memberClub = memberClubRepository.findByMemberIdAndClubId(memberId, gallery.getClub().getId());
+        MemberClub memberClub = memberClubRepository.findById(memberClubId)
+                .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.INVALID_MEMBER_CLUB));
         if(!memberClub.is_Staff()) {
             throw new ClubException(ClubErrorCode.ACCESS_DENIED);
         }
@@ -62,11 +66,12 @@ public class GalleryCommandService {
         galleryRepository.delete(gallery);
     }
 
-    public void updateGallery(Long galleryId, GalleryReqDTO.UpdateGalleryRequest request, Long memberId) {
+    public void updateGallery(Long galleryId, GalleryReqDTO.UpdateGalleryRequest request, Long memberClubId) {
         Gallery gallery = galleryRepository.findById(galleryId)
                 .orElseThrow(() -> new GalleryException(GalleryErrorCode.GALLERY_NOT_FOUND));
         Long clubId = gallery.getClub().getId();
-        MemberClub memberClub = memberClubRepository.findByMemberIdAndClubId(memberId, clubId);
+        MemberClub memberClub = memberClubRepository.findById(memberClubId)
+                .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.INVALID_MEMBER_CLUB));
         if(!memberClub.is_Staff()) {
             throw new ClubException(ClubErrorCode.ACCESS_DENIED);
         }
