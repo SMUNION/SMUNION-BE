@@ -7,12 +7,14 @@ import com.project.smunionbe.domain.club.dto.response.DepartmentResDTO;
 import com.project.smunionbe.domain.club.dto.response.GalleryResDTO;
 import com.project.smunionbe.domain.club.service.command.DepartmentCommandService;
 import com.project.smunionbe.domain.club.service.query.DepartmentQueryService;
+import com.project.smunionbe.domain.member.security.CustomUserDetails;
 import com.project.smunionbe.global.apiPayload.CustomResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -31,10 +33,11 @@ public class DepartmentController {
             description = "동아리 멤버가 부서를 생성하는 API 입니다."
     )
     public CustomResponse<DepartmentResDTO.CreateDepartmentDTO> createDepartment(
-            @RequestBody @Valid DepartmentReqDTO.CreateDepartmentDTO request
-    ) {
+            @RequestBody @Valid DepartmentReqDTO.CreateDepartmentDTO request,
+            @AuthenticationPrincipal CustomUserDetails auth
+            ) {
 
-        DepartmentResDTO.CreateDepartmentDTO response = departmentCommandService.createDepartment(request);
+        DepartmentResDTO.CreateDepartmentDTO response = departmentCommandService.createDepartment(request, auth.getMember().getId());
 
         return CustomResponse.onSuccess(response);
     }
@@ -46,24 +49,25 @@ public class DepartmentController {
     )
 
     public CustomResponse<DepartmentResDTO.GetDepartmentListResDTO> getAllDepartment(
-            @PathVariable Long clubId
+            @PathVariable Long clubId,
+            @AuthenticationPrincipal CustomUserDetails auth
     ) {
         DepartmentResDTO.GetDepartmentListResDTO response =
-                departmentQueryService.getAllDepartment(clubId);
+                departmentQueryService.getAllDepartment(clubId, auth.getMember().getId());
         return CustomResponse.onSuccess(response);
     }
 
 
-    @DeleteMapping("/{memberId}/{departmentId}")
+    @DeleteMapping("/{departmentId}")
     @Operation(
             summary = "부서 삭제 API",
             description = "특정 부서를 삭제합니다."
     )
     public CustomResponse<String> deleteDepartment(
             @PathVariable Long departmentId,
-            @PathVariable Long memberId
+            @AuthenticationPrincipal CustomUserDetails auth
     ) {
-        departmentCommandService.deleteDepartment(departmentId, memberId);
+        departmentCommandService.deleteDepartment(departmentId, auth.getMember().getId());
         return CustomResponse.onSuccess("부서가 성공적으로 삭제되었습니다.");
     }
 
@@ -73,9 +77,11 @@ public class DepartmentController {
             description = "초대에 필요한 승인 코드를 생성합니다."
     )
     public CustomResponse<String> createInviteCode(
-            @PathVariable String departmentId
+            @PathVariable String departmentId,
+            @AuthenticationPrincipal CustomUserDetails auth
+
     ) {
-        String code = departmentCommandService.createInviteCode(departmentId);
+        String code = departmentCommandService.createInviteCode(departmentId, auth.getMember().getId());
         return CustomResponse.onSuccess(code);
     }
 }

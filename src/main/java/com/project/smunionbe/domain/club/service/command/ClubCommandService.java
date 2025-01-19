@@ -17,6 +17,8 @@ import com.project.smunionbe.domain.club.repository.DepartmentRepository;
 import com.project.smunionbe.domain.member.converter.MemberClubConverter;
 import com.project.smunionbe.domain.member.entity.Member;
 import com.project.smunionbe.domain.member.entity.MemberClub;
+import com.project.smunionbe.domain.member.exception.MemberClubErrorCode;
+import com.project.smunionbe.domain.member.exception.MemberClubException;
 import com.project.smunionbe.domain.member.exception.MemberErrorCode;
 import com.project.smunionbe.domain.member.exception.MemberException;
 import com.project.smunionbe.domain.member.repository.MemberClubRepository;
@@ -115,7 +117,12 @@ public class ClubCommandService {
             throw new ClubException(ClubErrorCode.CODE_NOT_EQUAL);
         }
 
+        if (memberClubRepository.existsByMemberIdAndClubId(memberId, club.getId())){
+            throw new MemberClubException(MemberClubErrorCode.DUPLICATE_MEMBER_CLUB);
+        }
+
         MemberClub memberClub = MemberClubConverter.toMemberClub(member, club, department, request.nickname(), request.isStaff());
+
         memberClubRepository.save(memberClub);
 
 
