@@ -13,6 +13,8 @@ import com.project.smunionbe.domain.notification.attendance.exception.Attendance
 import com.project.smunionbe.domain.notification.attendance.repository.AttendanceRepository;
 import com.project.smunionbe.domain.notification.attendance.repository.AttendanceStatusRepository;
 import com.project.smunionbe.domain.notification.fcm.service.event.FCMNotificationService;
+import com.project.smunionbe.domain.notification.fee.exception.FeeErrorCode;
+import com.project.smunionbe.domain.notification.fee.exception.FeeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,9 +35,13 @@ public class AttendanceCommandService {
     private final FCMNotificationService fcmNotificationService;
 
     public void createAttendance(AttendanceReqDTO.CreateAttendanceDTO request, Long selectedMemberClubId) {
-        // 1. MemberClub 조회
+        // 1. MemberClub 조회 및 운영진 여부 검증
         MemberClub memberClub = memberClubRepository.findById(selectedMemberClubId)
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.MEMBER_NOT_FOUND));
+
+        if (!memberClub.is_Staff()) {
+            throw new AttendanceException(AttendanceErrorCode.ACCESS_DENIED);
+        }
 
         Long clubId = memberClub.getClub().getId();
 
@@ -72,9 +78,13 @@ public class AttendanceCommandService {
     }
 
     public void updateAttendance(Long attendanceId, AttendanceReqDTO.UpdateAttendanceRequest request, Long selectedMemberClubId) {
-        // MemberClub 조회
+        // 1. MemberClub 조회 및 운영진 여부 검증
         MemberClub memberClub = memberClubRepository.findById(selectedMemberClubId)
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.MEMBER_NOT_FOUND));
+
+        if (!memberClub.is_Staff()) {
+            throw new AttendanceException(AttendanceErrorCode.ACCESS_DENIED);
+        }
 
         AttendanceNotice attendanceNotice = attendanceRepository.findById(attendanceId)
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ATTENDANCE_NOT_FOUND));
@@ -88,9 +98,13 @@ public class AttendanceCommandService {
     }
 
     public void deleteAttendance(Long attendanceId, Long selectedMemberClubId) {
-        // MemberClub 조회
+        // 1. MemberClub 조회 및 운영진 여부 검증
         MemberClub memberClub = memberClubRepository.findById(selectedMemberClubId)
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.MEMBER_NOT_FOUND));
+
+        if (!memberClub.is_Staff()) {
+            throw new AttendanceException(AttendanceErrorCode.ACCESS_DENIED);
+        }
 
         AttendanceNotice attendanceNotice = attendanceRepository.findById(attendanceId)
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ATTENDANCE_NOT_FOUND));
