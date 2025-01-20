@@ -17,10 +17,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -47,6 +46,33 @@ public class ArticleController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(CustomResponse.onSuccess(HttpStatus.CREATED, response));
+    }
+
+    @GetMapping("/{articleId}")
+    @Operation(
+            summary = "게시글 단건 조회 API",
+            description = "게시글 단건 조회 API"
+    )
+    public ResponseEntity<CustomResponse<ArticleResponseDTO.ArticleResponse>> getArticle(
+            @PathVariable Long articleId) {
+
+        // 게시글 조회
+        ArticleResponseDTO.ArticleResponse response = articleService.getArticle(articleId);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(CustomResponse.onSuccess(HttpStatus.OK, response));
+    }
+
+    @GetMapping
+    @Operation(
+            summary = "게시글 전체 조회 API",
+            description = "게시글을 최신순으로 전체 조회하는 API입니다."
+    )
+    public ResponseEntity<CustomResponse<List<ArticleResponseDTO.ArticleResponse>>> getAllArticles() {
+        // 서비스 호출하여 게시글 전체 조회
+        List<ArticleResponseDTO.ArticleResponse> response = articleService.getAllArticles();
+
+        return ResponseEntity.ok(CustomResponse.onSuccess(HttpStatus.OK, response));
     }
 
 }

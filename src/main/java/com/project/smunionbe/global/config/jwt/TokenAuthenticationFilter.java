@@ -8,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -23,20 +24,25 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String requestURI = request.getRequestURI();
+        String method = request.getMethod(); // 요청 메서드 가져오기
 
-        return requestURI.equals("") ||
-           requestURI.equals("/") ||  // 루트 경로 "/" 인증 제외
-           requestURI.equals("/favicon.ico") ||  // 파비콘 요청 인증 제외
-           requestURI.startsWith("/swagger-ui") ||     
-           requestURI.startsWith("/v3/api-docs") ||    
-           requestURI.startsWith("/swagger-resources") ||  
-           requestURI.startsWith("/swagger-ui.html") ||  
-           requestURI.startsWith("/api/email/send/signup") ||  
-           requestURI.startsWith("/api/v1/users/signup") ||  //  로그인 API 필터링 제외
-           requestURI.startsWith("/api/v1/users/login") ||  //  회원가입 API 필터링 제외
-           requestURI.startsWith("/api/v1/users/refresh");  //  Access Token 재발급 API 필터링 제외
+        // ✅ "/api/v1/community/" 경로에서 GET 요청만 허용
+        boolean isCommunityGetRequest = HttpMethod.GET.matches(method) && requestURI.startsWith("/api/v1/community");
+
+        return isCommunityGetRequest || (  // ✅ GET 요청이면서 해당 경로일 경우만 허용
+                requestURI.equals("") ||
+                        requestURI.equals("/") ||  // 루트 경로 "/" 인증 제외
+                        requestURI.equals("/favicon.ico") ||  // 파비콘 요청 인증 제외
+                        requestURI.startsWith("/swagger-ui") ||
+                        requestURI.startsWith("/v3/api-docs") ||
+                        requestURI.startsWith("/swagger-resources") ||
+                        requestURI.startsWith("/swagger-ui.html") ||
+                        requestURI.startsWith("/api/email/send/signup") ||
+                        requestURI.startsWith("/api/v1/users/signup") ||  // 로그인 API 필터링 제외
+                        requestURI.startsWith("/api/v1/users/login") ||  // 회원가입 API 필터링 제외
+                        requestURI.startsWith("/api/v1/users/refresh")   // Access Token 재발급 API 필터링 제외
+        );
     }
-
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
