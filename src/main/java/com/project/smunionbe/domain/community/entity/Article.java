@@ -37,4 +37,14 @@ public class Article extends BaseEntity {
     @Column(name = "like_num", nullable = false)
     @Builder.Default
     private Integer LikeNum = 0;
+
+    //제목 변경 메서드
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    //내용 변경 메서드
+    public void setContent(String content) {
+        this.content = content;
+    }
 }

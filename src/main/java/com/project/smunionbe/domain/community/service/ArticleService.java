@@ -89,4 +89,28 @@ public class ArticleService {
             return articleConverter.toArticleResponseDto(article, article.getDepartment(), article.getMemberName(), memberClub.getNickname());
         }).toList();
     }
+
+    @Transactional
+    public ArticleResponseDTO.ArticleResponse updateArticle(Long articleId, Long memberClubId, ArticleRequestDTO.UpdateArticleRequest dto) {
+        // 게시글 조회
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new CommunityException(CommunityErrorCode.ARTICLE_NOT_FOUND));
+
+        // 수정 권한 확인
+        if (!article.getMemberClub().getId().equals(memberClubId)) {
+            throw new CommunityException(CommunityErrorCode.UNAUTHORIZED_ACTION);
+        }
+
+        // 수정할 필드만 업데이트
+        if (dto.title() != null) {
+            article.setTitle(dto.title());
+        }
+        if (dto.content() != null) {
+            article.setContent(dto.content());
+        }
+
+        Article updatedArticle = articleRepository.save(article);
+
+        return articleConverter.toArticleResponseDto(updatedArticle, updatedArticle.getDepartment(), updatedArticle.getMemberName(), updatedArticle.getMemberClub().getNickname());
+    }
 }

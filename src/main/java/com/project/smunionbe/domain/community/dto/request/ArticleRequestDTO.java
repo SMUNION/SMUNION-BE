@@ -8,4 +8,9 @@ public class ArticleRequestDTO {
             @NotBlank String title,      // 게시글 제목
             @NotBlank String content   // 게시글 내용
     ) {}
+
+    public record UpdateArticleRequest(
+            String title,
+            String content
+    ) {}
 }

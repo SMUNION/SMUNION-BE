@@ -75,4 +75,20 @@ public class ArticleController {
         return ResponseEntity.ok(CustomResponse.onSuccess(HttpStatus.OK, response));
     }
 
+    @PatchMapping("/{articleId}")
+    @Operation(
+            summary = "게시글 수정 API",
+            description = "게시글 수정 API입니다. 제목과 내용 중 수정된 부분만 request로 보내면 됩니다."
+    )
+    public ResponseEntity<CustomResponse<ArticleResponseDTO.ArticleResponse>> updateArticle(@PathVariable Long articleId, @RequestBody ArticleRequestDTO.UpdateArticleRequest request, @AuthenticationPrincipal CustomUserDetails auth, HttpSession session) {
+        //세션에서 memberClubId 가져오기
+        Long memberId = auth.getMember().getId();
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, memberId);
+
+        ArticleResponseDTO.ArticleResponse response = articleService.updateArticle(articleId, selectedMemberClubId, request);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(CustomResponse.onSuccess(HttpStatus.OK, response));
+    }
+
 }

@@ -11,8 +11,10 @@ public enum CommunityErrorCode implements BaseErrorCode {
     // 사용자 관련 에러
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "Auth404_0", "존재하지 않는 유저입니다."),
 
+
     // 게시글 관련 에러
-    ARTICLE_NOT_FOUND(HttpStatus.NOT_FOUND, "Article404_0", "게시글이 존재하지 않습니다.");
+    ARTICLE_NOT_FOUND(HttpStatus.NOT_FOUND, "Article404_0", "게시글이 존재하지 않습니다."),
+    UNAUTHORIZED_ACTION(HttpStatus.FORBIDDEN, "Article403_0", "이 게시글을 수정할 권한이 없습니다.");
 
     private final HttpStatus status;
     private final String code;
