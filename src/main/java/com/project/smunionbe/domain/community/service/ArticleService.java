@@ -113,4 +113,20 @@ public class ArticleService {
 
         return articleConverter.toArticleResponseDto(updatedArticle, updatedArticle.getDepartment(), updatedArticle.getMemberName(), updatedArticle.getMemberClub().getNickname());
     }
+
+
+    @Transactional
+    public void deleteArticle(Long articleId, Long memberClubId) {
+        // 게시글 조회
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new CommunityException(CommunityErrorCode.ARTICLE_NOT_FOUND));
+
+        // 삭제 권한 확인
+        if (!article.getMemberClub().getId().equals(memberClubId)) {
+            throw new CommunityException(CommunityErrorCode.UNAUTHORIZED_DELETE_ACTION);
+        }
+
+        // 게시글 삭제
+        articleRepository.delete(article);
+    }
 }

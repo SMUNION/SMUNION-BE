@@ -91,4 +91,21 @@ public class ArticleController {
                 .body(CustomResponse.onSuccess(HttpStatus.OK, response));
     }
 
+
+    @DeleteMapping("/{articleId}")
+    @Operation(summary = "게시글 삭제 API", description = "게시글을 삭제하는 API입니다.")
+    public ResponseEntity<CustomResponse<String>> deleteArticle(@PathVariable Long articleId, @AuthenticationPrincipal CustomUserDetails auth, HttpSession session) {
+        // 세션에서 memberClubId 가져오기
+        Long memberId = auth.getMember().getId();
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, memberId);
+
+        // 게시글 삭제
+        articleService.deleteArticle(articleId, selectedMemberClubId);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(CustomResponse.onSuccess(HttpStatus.OK, "게시글이 삭제되었습니다."));
+    }
+
+
+
 }
