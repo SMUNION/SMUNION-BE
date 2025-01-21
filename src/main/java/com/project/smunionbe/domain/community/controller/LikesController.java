@@ -39,9 +39,7 @@ public class LikesController {
             summary = "좋아요 여부 확인 API",
             description = "좋아요 여부 확인 API"
     )
-    public ResponseEntity<CustomResponse<Boolean>> checkLikeStatus(
-            @PathVariable Long articleId,
-            @AuthenticationPrincipal CustomUserDetails auth) {
+    public ResponseEntity<CustomResponse<Boolean>> checkLikeStatus(@PathVariable Long articleId, @AuthenticationPrincipal CustomUserDetails auth) {
 
         boolean isLiked = likesService.isLiked(articleId, auth.getMember().getId());
         if (isLiked) {

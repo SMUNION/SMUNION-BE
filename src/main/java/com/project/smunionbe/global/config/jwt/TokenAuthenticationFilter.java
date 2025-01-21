@@ -21,28 +21,34 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     private final static String HEADER_AUTHORIZATION = "Authorization";
     private final static String TOKEN_PREFIX = "Bearer ";
 
+
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String requestURI = request.getRequestURI();
-        String method = request.getMethod(); // 요청 메서드 가져오기
+        String method = request.getMethod();
 
-        // ✅ "/api/v1/community/" 경로에서 GET 요청만 허용
-        boolean isCommunityGetRequest = HttpMethod.GET.matches(method) && requestURI.startsWith("/api/v1/community");
+        // ✅ 인증 없이 허용하는 GET 요청
+        boolean isAllowedGetRequest =
+                HttpMethod.GET.matches(method) && (
+                        requestURI.equals("/api/v1/community") ||
+                                requestURI.matches("^/api/v1/community/\\d+$") // /api/v1/community/{articleId}
+                );
 
-        return isCommunityGetRequest || (  // ✅ GET 요청이면서 해당 경로일 경우만 허용
+        return isAllowedGetRequest || (
                 requestURI.equals("") ||
-                        requestURI.equals("/") ||  // 루트 경로 "/" 인증 제외
-                        requestURI.equals("/favicon.ico") ||  // 파비콘 요청 인증 제외
+                        requestURI.equals("/") ||
+                        requestURI.equals("/favicon.ico") ||
                         requestURI.startsWith("/swagger-ui") ||
                         requestURI.startsWith("/v3/api-docs") ||
                         requestURI.startsWith("/swagger-resources") ||
                         requestURI.startsWith("/swagger-ui.html") ||
                         requestURI.startsWith("/api/email/send/signup") ||
-                        requestURI.startsWith("/api/v1/users/signup") ||  // 로그인 API 필터링 제외
-                        requestURI.startsWith("/api/v1/users/login") ||  // 회원가입 API 필터링 제외
-                        requestURI.startsWith("/api/v1/users/refresh")   // Access Token 재발급 API 필터링 제외
+                        requestURI.startsWith("/api/v1/users/signup") ||
+                        requestURI.startsWith("/api/v1/users/login") ||
+                        requestURI.startsWith("/api/v1/users/refresh")
         );
     }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {

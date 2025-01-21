@@ -81,7 +81,18 @@ public class SecurityConfig {
                         // OPTIONS 요청 및 인증 필요 없는 URL 허용
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(allowedUrls).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/community/**").permitAll()
+                        // 인증 없이 허용되는 GET 요청
+                        .requestMatchers(HttpMethod.GET, "/api/v1/community").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/community/{articleId}").permitAll()
+
+                        // 인증이 필요한 요청 (POST, PATCH, GET /likes 포함)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/community").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/community/{articleId}/likes").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/community/{articleId}/likes").authenticated()
+
+                        // 그 외 모든 `/api/v1/community/**` 경로 인증 필요
+                        .requestMatchers("/api/v1/community/**").authenticated()
+
                         .anyRequest().authenticated()); // 그 외 모든 요청은 인증 필요
 
         http

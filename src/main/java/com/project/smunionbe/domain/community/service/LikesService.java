@@ -37,17 +37,19 @@ public class LikesService {
         Optional<Likes> existingLike = likesRepository.findByArticleAndMember(article, member);
 
         if (existingLike.isPresent()) {
-            // 좋아요가 이미 존재하면 → 삭제 (좋아요 취소)
+            // 좋아요가 이미 존재하면 삭제 (좋아요 취소)
             likesRepository.delete(existingLike.get());
-            return false;  // 좋아요 취소됨
+            articleRepository.decreaseLikeCount(articleId);
+            return false;  // 좋아요 취소
         } else {
-            // 좋아요가 없으면 → 추가
+            // 좋아요가 없으면 추가
             Likes newLike = Likes.builder()
                     .article(article)
                     .member(member)
                     .build();
             likesRepository.save(newLike);
-            return true;  // 좋아요 추가됨
+            articleRepository.increaseLikeCount(articleId);
+            return true;  // 좋아요 추가
         }
     }
 
