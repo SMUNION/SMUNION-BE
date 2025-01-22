@@ -31,7 +31,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
            requestURI.startsWith("/v3/api-docs") ||    
            requestURI.startsWith("/swagger-resources") ||  
            requestURI.startsWith("/swagger-ui.html") ||  
-           requestURI.startsWith("/api/email/send/signup") ||  
+           requestURI.startsWith("/api/v1/email/send/signup") ||
            requestURI.startsWith("/api/v1/users/signup") ||  //  로그인 API 필터링 제외
            requestURI.startsWith("/api/v1/users/login") ||  //  회원가입 API 필터링 제외
            requestURI.startsWith("/api/v1/users/refresh");  //  Access Token 재발급 API 필터링 제외
