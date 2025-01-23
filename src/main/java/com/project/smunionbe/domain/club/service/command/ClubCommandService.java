@@ -23,19 +23,13 @@ import com.project.smunionbe.domain.member.exception.MemberErrorCode;
 import com.project.smunionbe.domain.member.exception.MemberException;
 import com.project.smunionbe.domain.member.repository.MemberClubRepository;
 import com.project.smunionbe.domain.member.repository.MemberRepository;
-import com.project.smunionbe.domain.notification.attendance.converter.AttendanceConverter;
-import com.project.smunionbe.domain.notification.attendance.dto.request.AttendanceReqDTO;
-import com.project.smunionbe.domain.notification.attendance.dto.response.AttendanceResDTO;
-import com.project.smunionbe.domain.notification.attendance.entity.AttendanceNotice;
-import com.project.smunionbe.domain.notification.attendance.exception.AttendanceErrorCode;
-import com.project.smunionbe.domain.notification.attendance.exception.AttendanceException;
 import com.project.smunionbe.global.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -61,7 +55,7 @@ public class ClubCommandService {
         Club club = ClubConverter.toClub(request);
         clubRepository.save(club);
 
-        DepartmentReqDTO.CreateDepartmentDTO createDepartmentDTO = new DepartmentReqDTO.CreateDepartmentDTO("운영진", club.getId());
+        DepartmentReqDTO.CreateDepartmentDTO createDepartmentDTO = new DepartmentReqDTO.CreateDepartmentDTO("운영진");
         Department department = DepartmentConverter.toDepartment(createDepartmentDTO, club);
         departmentRepository.save(department);
 
@@ -75,12 +69,13 @@ public class ClubCommandService {
 
     }
 
-    public void updateClub(ClubReqDTO.UpdateClubRequest request, Long memberId) {
+    public void updateClub(ClubReqDTO.UpdateClubRequest request, Long memberClubId) {
         Club club = clubRepository.findById(request.clubId())
                 .orElseThrow(() -> new ClubException(ClubErrorCode.CLUB_NOT_FOUND));
 
         // 권한 확인 코드 추가 필요
-        MemberClub memberClub = memberClubRepository.findByMemberIdAndClubId(memberId, request.clubId());
+        MemberClub memberClub = memberClubRepository.findById(memberClubId)
+                .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.INVALID_MEMBER_CLUB));
         if(!memberClub.is_Staff()) {
             throw new ClubException(ClubErrorCode.ACCESS_DENIED);
         }
@@ -93,7 +88,7 @@ public class ClubCommandService {
         club.update(request.name(), request.description(), request.thumbnailUrl());
     }
 
-    public void approveClub(ClubReqDTO.ApproveClubRequest request, Long memberId) {
+    public void approveClub(ClubReqDTO.ApproveClubRequest request, Long memberId, Long memberClubId) {
 
         Department department = departmentRepository.findById(request.departmentId())
                 .orElseThrow(() -> new DepartmentException(DepartmentErrorCode.DEPARTMENT_NOT_FOUND));
