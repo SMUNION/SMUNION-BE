@@ -21,6 +21,7 @@ public enum AttendanceErrorCode implements BaseErrorCode {
     // 권한 관련 에러
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "Attendance403_0", "해당 동아리에 접근할 수 없습니다."),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "Member404_0", "해당 멤버를 찾을 수 없습니다."),
+    NO_TARGET_MEMBERS(HttpStatus.NOT_FOUND, "Member404_1","타겟 멤버가 존재하지 않습니다."),
 
     // 공통 처리
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "Attendance400_0", "잘못된 요청입니다."),

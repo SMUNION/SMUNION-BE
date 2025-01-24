@@ -6,10 +6,12 @@ import com.project.smunionbe.domain.club.dto.response.DepartmentResDTO;
 import com.project.smunionbe.domain.club.service.command.ClubCommandService;
 import com.project.smunionbe.domain.club.service.query.ClubQueryService;
 import com.project.smunionbe.domain.member.security.CustomUserDetails;
+import com.project.smunionbe.domain.member.service.ClubSelectionService;
 import com.project.smunionbe.domain.notification.attendance.dto.request.AttendanceReqDTO;
 import com.project.smunionbe.global.apiPayload.CustomResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +27,7 @@ public class ClubController {
 
     private final ClubCommandService clubCommandService;
     private final ClubQueryService clubQueryService;
+    private final ClubSelectionService clubSelectionService;
 
     @PostMapping("")
     @Operation(
@@ -48,10 +51,12 @@ public class ClubController {
     )
     public CustomResponse<String> updateClub(
             @RequestBody @Valid ClubReqDTO.UpdateClubRequest request,
-            @AuthenticationPrincipal CustomUserDetails auth
+            @AuthenticationPrincipal CustomUserDetails auth,
+            HttpSession session
 
     ) {
-        clubCommandService.updateClub(request, auth.getMember().getId());
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, auth.getMember().getId());
+        clubCommandService.updateClub(request, selectedMemberClubId);
         return CustomResponse.onSuccess("동아리 수정 성공");
     }
 
@@ -62,26 +67,32 @@ public class ClubController {
     )
     public CustomResponse<String> approveClub(
             @RequestBody @Valid ClubReqDTO.ApproveClubRequest request,
-            @AuthenticationPrincipal CustomUserDetails auth
-            ) {
+            @AuthenticationPrincipal CustomUserDetails auth,
+            HttpSession session
 
-        clubCommandService.approveClub(request, auth.getMember().getId());
+    ) {
+
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, auth.getMember().getId());
+
+        clubCommandService.approveClub(request, auth.getMember().getId(), selectedMemberClubId);
         return CustomResponse.onSuccess("동아리 가입 성공");
 
     }
 
-    @GetMapping("/{clubId}")
+    @GetMapping("")
     @Operation(
             summary = "동아리 부원 조회 API",
             description = "동아리에 가입되어 있는 부원을 조회하는 API 입니다."
     )
     public CustomResponse<ClubResDTO.GetMemberClubListResDTO> getAllMemberClub(
-           @PathVariable Long clubId,
-           @AuthenticationPrincipal CustomUserDetails auth
+           @AuthenticationPrincipal CustomUserDetails auth,
+           HttpSession session
     ) {
 
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, auth.getMember().getId());
+
         ClubResDTO.GetMemberClubListResDTO response =
-                clubQueryService.getAllMemberClubList(clubId, auth.getMember().getId());
+                clubQueryService.getAllMemberClubList(selectedMemberClubId);
         return CustomResponse.onSuccess(response);
 
     }

@@ -22,6 +22,7 @@ public class AttendanceResDTO {
             Long attendanceId,
             String title,
             String content,
+            String target,
             LocalDateTime date,
             LocalDateTime createdAt
     ){

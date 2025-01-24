@@ -80,6 +80,7 @@ public class AttendanceQueryService {
                         notice.getId(),
                         notice.getTitle(),
                         notice.getContent(),
+                        notice.getTarget(),
                         notice.getDate(),
                         notice.getCreatedAt()
                 ))

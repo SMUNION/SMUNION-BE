@@ -9,6 +9,9 @@ import com.project.smunionbe.domain.club.exception.ClubException;
 import com.project.smunionbe.domain.club.exception.GalleryErrorCode;
 import com.project.smunionbe.domain.club.exception.GalleryException;
 import com.project.smunionbe.domain.club.repository.DepartmentRepository;
+import com.project.smunionbe.domain.member.entity.MemberClub;
+import com.project.smunionbe.domain.member.exception.MemberClubErrorCode;
+import com.project.smunionbe.domain.member.exception.MemberClubException;
 import com.project.smunionbe.domain.member.repository.MemberClubRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,15 +28,13 @@ public class DepartmentQueryService {
     private final DepartmentRepository departmentRepository;
     private final MemberClubRepository memberClubRepository;
     public DepartmentResDTO.GetDepartmentListResDTO getAllDepartment(
-            Long clubId,
-            Long memberId
+            Long memberClubId
     ) {
-        if (!memberClubRepository.existsByMemberIdAndClubId(clubId, memberId)) {
-            throw new ClubException(ClubErrorCode.ACCESS_DENIED);
-        }
+        MemberClub memberClub = memberClubRepository.findById(memberClubId)
+                .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.INVALID_MEMBER_CLUB));
 
         // 데이터 변환
-        List<DepartmentResDTO.CreateDepartmentDTO> departmentResDTOS = departmentRepository.findAllByClubId(clubId)
+        List<DepartmentResDTO.CreateDepartmentDTO> departmentResDTOS = departmentRepository.findAllByClubId(memberClub.getClub().getId())
                 .stream()
                 .map(department -> new DepartmentResDTO.CreateDepartmentDTO(
                         department.getId(),
