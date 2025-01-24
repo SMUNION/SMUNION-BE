@@ -84,6 +84,7 @@ public class SecurityConfig {
                         // 인증 없이 허용되는 GET 요청
                         .requestMatchers(HttpMethod.GET, "/api/v1/community").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/community/{articleId}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/community/{articleId}/replies").permitAll()
 
                         // 인증이 필요한 요청 (POST, PATCH, GET /likes 포함)
                         .requestMatchers(HttpMethod.POST, "/api/v1/community").authenticated()

@@ -27,11 +27,12 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         String requestURI = request.getRequestURI();
         String method = request.getMethod();
 
-        // ✅ 인증 없이 허용하는 GET 요청
+        // 인증 없이 허용하는 GET 요청
         boolean isAllowedGetRequest =
                 HttpMethod.GET.matches(method) && (
                         requestURI.equals("/api/v1/community") ||
-                                requestURI.matches("^/api/v1/community/\\d+$") // /api/v1/community/{articleId}
+                                requestURI.matches("^/api/v1/community/\\d+$") || // /api/v1/community/{articleId}
+                                requestURI.matches("^/api/v1/community/\\d+/replies$") // /api/v1/community/{articleId}/replies 추가
                 );
 
         return isAllowedGetRequest || (
