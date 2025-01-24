@@ -35,7 +35,7 @@ public class SecurityConfig {
             "/api/v1/email/verify",
             "/api/v1/users/signup", //회원가입은 인증이 필요하지 않음
             "/api/v1/users/login", //로그인은 인증이 필요하지 않음
-            "/api/v1/users/refresh" //accessToken 재발급은 인증이 필요하지 않음
+            "/api/v1/users/refresh", //accessToken 재발급은 인증이 필요하지 않음
     };
 
     @Bean //인증 관리자 관련 설정
@@ -82,6 +82,19 @@ public class SecurityConfig {
                         // OPTIONS 요청 및 인증 필요 없는 URL 허용
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(allowedUrls).permitAll()
+                        // 인증 없이 허용되는 GET 요청
+                        .requestMatchers(HttpMethod.GET, "/api/v1/community").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/community/{articleId}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/community/{articleId}/replies").permitAll()
+
+                        // 인증이 필요한 요청 (POST, PATCH, GET /likes 포함)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/community").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/community/{articleId}/likes").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/community/{articleId}/likes").authenticated()
+
+                        // 그 외 모든 `/api/v1/community/**` 경로 인증 필요
+                        .requestMatchers("/api/v1/community/**").authenticated()
+
                         .anyRequest().authenticated()); // 그 외 모든 요청은 인증 필요
 
         http

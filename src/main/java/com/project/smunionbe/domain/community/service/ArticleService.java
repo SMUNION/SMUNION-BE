@@ -8,6 +8,8 @@ import com.project.smunionbe.domain.community.converter.ArticleConverter;
 import com.project.smunionbe.domain.community.dto.request.ArticleRequestDTO;
 import com.project.smunionbe.domain.community.dto.response.ArticleResponseDTO;
 import com.project.smunionbe.domain.community.entity.Article;
+import com.project.smunionbe.domain.community.exception.CommunityErrorCode;
+import com.project.smunionbe.domain.community.exception.CommunityException;
 import com.project.smunionbe.domain.community.repository.ArticleRepository;
 import com.project.smunionbe.domain.member.entity.MemberClub;
 import com.project.smunionbe.domain.member.exception.MemberClubErrorCode;
@@ -15,9 +17,12 @@ import com.project.smunionbe.domain.member.exception.MemberClubException;
 import com.project.smunionbe.domain.member.repository.MemberClubRepository;
 import com.project.smunionbe.domain.member.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -53,6 +58,75 @@ public class ArticleService {
         articleRepository.save(article);
 
         // 저장 후 ID 반환
-        return articleConverter.toArticleResponseDto(article);
+        return articleConverter.toArticleResponseDto(article, department.getName(), club.getName(), memberClub.getNickname());
+    }
+
+    //게시글 단건 조회
+    @Transactional(readOnly = true)
+    public ArticleResponseDTO.ArticleResponse getArticle(Long articleId) {
+        // 게시글 조회
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new CommunityException(CommunityErrorCode.ARTICLE_NOT_FOUND));
+
+        // MemberClub 조회
+        MemberClub memberClub = memberClubRepository.findById(article.getMemberClub().getId())
+                .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.MEMBER_CLUB_NOT_FOUND));
+
+        // 엔티티 → DTO 변환하여 반환
+        return articleConverter.toArticleResponseDto(article, article.getDepartment(), article.getMemberName(), memberClub.getNickname());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ArticleResponseDTO.ArticleResponse> getAllArticles() {
+        // 최신순으로 게시글 전체 조회
+        List<Article> articles = articleRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        // 엔티티 → DTO 변환
+        return articles.stream().map(article -> {
+            MemberClub memberClub = memberClubRepository.findById(article.getMemberClub().getId())
+                    .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.MEMBER_CLUB_NOT_FOUND));
+
+            return articleConverter.toArticleResponseDto(article, article.getDepartment(), article.getMemberName(), memberClub.getNickname());
+        }).toList();
+    }
+
+    @Transactional
+    public ArticleResponseDTO.ArticleResponse updateArticle(Long articleId, Long memberClubId, ArticleRequestDTO.UpdateArticleRequest dto) {
+        // 게시글 조회
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new CommunityException(CommunityErrorCode.ARTICLE_NOT_FOUND));
+
+        // 수정 권한 확인
+        if (!article.getMemberClub().getId().equals(memberClubId)) {
+            throw new CommunityException(CommunityErrorCode.UNAUTHORIZED_ACTION);
+        }
+
+        // 수정할 필드만 업데이트
+        if (dto.title() != null) {
+            article.setTitle(dto.title());
+        }
+        if (dto.content() != null) {
+            article.setContent(dto.content());
+        }
+
+        Article updatedArticle = articleRepository.save(article);
+
+        return articleConverter.toArticleResponseDto(updatedArticle, updatedArticle.getDepartment(), updatedArticle.getMemberName(), updatedArticle.getMemberClub().getNickname());
+    }
+
+
+    @Transactional
+    public void deleteArticle(Long articleId, Long memberClubId) {
+        // 게시글 조회
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new CommunityException(CommunityErrorCode.ARTICLE_NOT_FOUND));
+
+        // 삭제 권한 확인
+        if (!article.getMemberClub().getId().equals(memberClubId)) {
+            throw new CommunityException(CommunityErrorCode.UNAUTHORIZED_DELETE_ACTION);
+        }
+
+        // 게시글 삭제
+        articleRepository.delete(article);
     }
 }

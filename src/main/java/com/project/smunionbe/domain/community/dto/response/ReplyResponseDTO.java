@@ -2,16 +2,15 @@ package com.project.smunionbe.domain.community.dto.response;
 
 import java.time.LocalDateTime;
 
-public class ArticleResponseDTO {
+public class ReplyResponseDTO {
 
-    public record ArticleResponse(
+    public record ReplyResponse(
             Long id,
+            Long articleId,
             String departmentName,
             String clubName,
             String nickname,
-            String title,
-            String content,
-            Integer likeNum,
+            String body,
             LocalDateTime createdAt
     ) {}
 }
