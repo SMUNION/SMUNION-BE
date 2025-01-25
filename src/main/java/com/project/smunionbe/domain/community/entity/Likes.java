@@ -1,5 +1,6 @@
 package com.project.smunionbe.domain.community.entity;
 
+import com.project.smunionbe.domain.member.entity.Member;
 import com.project.smunionbe.domain.member.entity.MemberClub;
 import jakarta.persistence.*;
 import lombok.*;
@@ -15,12 +16,12 @@ public class Likes {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "article_id")
     private Article article;
 
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_club_id", nullable = false)
-    private MemberClub memberClub;
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 }

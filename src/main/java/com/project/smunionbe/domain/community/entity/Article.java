@@ -1,6 +1,7 @@
 package com.project.smunionbe.domain.community.entity;
 
 import com.project.smunionbe.domain.member.entity.MemberClub;
+import com.project.smunionbe.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -10,7 +11,7 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @Table(name = "article")
-public class Article {
+public class Article extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,4 +37,14 @@ public class Article {
     @Column(name = "like_num", nullable = false)
     @Builder.Default
     private Integer LikeNum = 0;
+
+    //제목 변경 메서드
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    //내용 변경 메서드
+    public void setContent(String content) {
+        this.content = content;
+    }
 }
