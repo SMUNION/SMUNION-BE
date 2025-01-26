@@ -96,4 +96,23 @@ public class ClubController {
         return CustomResponse.onSuccess(response);
 
     }
+
+    @GetMapping("/detail")
+    @Operation(
+            summary = "동아리 상세 조회 API",
+            description = "동아리의 전체적인 정보를 조회하는 API 입니다."
+    )
+    public CustomResponse<ClubResDTO.ClubDetailResDTO> getClubDetail(
+            @AuthenticationPrincipal CustomUserDetails auth,
+            HttpSession session
+    ) {
+
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, auth.getMember().getId());
+
+        ClubResDTO.ClubDetailResDTO response =
+                clubQueryService.getclubDetailResDTO(selectedMemberClubId);
+
+        return CustomResponse.onSuccess(response);
+
+    }
 }
