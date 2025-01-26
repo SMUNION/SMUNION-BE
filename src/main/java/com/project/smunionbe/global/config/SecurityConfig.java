@@ -1,5 +1,6 @@
 package com.project.smunionbe.global.config;
 
+import com.project.smunionbe.domain.member.repository.MemberRepository;
 import com.project.smunionbe.global.config.jwt.TokenAuthenticationFilter;
 import com.project.smunionbe.global.config.jwt.TokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +53,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, MemberRepository memberRepository) throws Exception {
 
         // CORS 정책 설정
         http
@@ -98,7 +99,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()); // 그 외 모든 요청은 인증 필요
 
         http
-                .addFilterBefore(new TokenAuthenticationFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new TokenAuthenticationFilter(tokenProvider, memberRepository), UsernamePasswordAuthenticationFilter.class);
 
 
         return http.build();

@@ -1,8 +1,13 @@
 package com.project.smunionbe.global.config.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.smunionbe.domain.member.entity.Member;
 import com.project.smunionbe.domain.member.exception.AuthErrorCode;
+import com.project.smunionbe.domain.member.exception.MemberErrorCode;
+import com.project.smunionbe.domain.member.exception.MemberException;
+import com.project.smunionbe.domain.member.repository.MemberRepository;
 import com.project.smunionbe.global.apiPayload.CustomResponse;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,6 +23,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
     private final TokenProvider tokenProvider;
+    private final MemberRepository memberRepository;
     private final static String HEADER_AUTHORIZATION = "Authorization";
     private final static String TOKEN_PREFIX = "Bearer ";
 
@@ -59,6 +65,43 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         String token = getAccessToken(authorizationHeader);
 
         if (token != null && tokenProvider.validToken(token, "access")) {
+
+            //탈퇴한 회원인지 여부 확인
+            Claims claims = tokenProvider.getClaims(token);
+            Long memberId = claims.get("id", Long.class);
+            String deletedAt = claims.get("deletedAt") != null ? claims.get("deletedAt").toString() : null;
+
+            CustomResponse<Object> customResponse;
+
+            //탈퇴한 회원이면 요청 차단
+            if (deletedAt != null) {
+                customResponse = CustomResponse.onFailure(
+                        String.valueOf(AuthErrorCode.MEMBER_DELETED.getStatus().value()),
+                        AuthErrorCode.MEMBER_DELETED.getMessage()
+                );
+                response.setStatus(AuthErrorCode.MEMBER_DELETED.getStatus().value());
+                response.setCharacterEncoding("UTF-8");
+                response.setContentType("application/json; charset=UTF-8");
+                response.getWriter().write(new ObjectMapper().writeValueAsString(customResponse));
+                return;
+            }
+
+            // JWT 내부 deleted_at이 없을 경우에만 DB 조회
+            Member member = memberRepository.findById(memberId)
+                    .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+            if (member.getDeletedAt() != null) {
+                customResponse = CustomResponse.onFailure(
+                        String.valueOf(AuthErrorCode.MEMBER_DELETED.getStatus().value()),
+                        AuthErrorCode.MEMBER_DELETED.getMessage()
+                );
+                response.setStatus(AuthErrorCode.MEMBER_DELETED.getStatus().value());
+                response.setCharacterEncoding("UTF-8");
+                response.setContentType("application/json; charset=UTF-8");
+                response.getWriter().write(new ObjectMapper().writeValueAsString(customResponse));
+                return;
+            }
+
             Authentication authentication = tokenProvider.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } else {

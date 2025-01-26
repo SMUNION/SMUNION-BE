@@ -19,6 +19,8 @@ public enum AuthErrorCode implements BaseErrorCode {
 
     // 사용자 관련 에러
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "Auth404_0", "존재하지 않는 유저입니다."),
+    MEMBER_ALREADY_DELETED(HttpStatus.NOT_FOUND, "Auth404_1", "이미 탈퇴된 회원입니다."),
+    MEMBER_DELETED(HttpStatus.NOT_FOUND, "Auth404_2", "탈퇴한 계정입니다."),
     INVALID_MEMBER_PASSWORD(HttpStatus.BAD_REQUEST, "Auth400_0", "잘못된 비밀번호입니다."),
 
     // 로그인 관련 에러

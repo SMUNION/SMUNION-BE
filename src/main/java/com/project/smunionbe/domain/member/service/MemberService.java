@@ -85,6 +85,11 @@ public class MemberService {
             throw new AuthException(AuthErrorCode.INVALID_MEMBER_PASSWORD);
         }
 
+        // 탈퇴한 회원이면 로그인 차단
+        if (member.isDeleted()) {
+            throw new AuthException(AuthErrorCode.MEMBER_DELETED);
+        }
+
         return member;
     }
 
@@ -101,6 +106,20 @@ public class MemberService {
     // 이메일에서 학번만 추출
     private String extractStudentNumber(String email) {
         return email.split("@")[0];
+    }
+
+    // 회원 탈퇴
+    @Transactional
+    public void deleteMember(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new AuthException(AuthErrorCode.MEMBER_NOT_FOUND));
+
+        if (member.isDeleted()) {
+            throw new AuthException(AuthErrorCode.MEMBER_ALREADY_DELETED);
+        }
+
+        //회원 탈퇴 Soft Delete 수행
+        member.delete();
     }
 
 

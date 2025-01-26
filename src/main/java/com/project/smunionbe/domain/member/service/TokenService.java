@@ -38,7 +38,6 @@ public class TokenService {
 
     // 리프레시 토큰을 기반으로 새로운 액세스 토큰 생성
     public Map<String, String> createNewAccessToken(String refreshToken) {
-        System.out.println("2번: " + refreshToken);
         //토큰 유효성 검사에 실패하면 예외 발생
         if (!tokenProvider.validToken(refreshToken, "refresh")) {
             throw new AuthException(AuthErrorCode.REFRESH_TOKEN_INVALID);

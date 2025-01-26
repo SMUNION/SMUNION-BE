@@ -40,5 +40,16 @@ public class Member extends BaseEntity {
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MemberClub> memberClubs;
+
+
+    //soft delete 수행 메서드
+    public void delete() {
+        this.deletedAt = LocalDateTime.now();
+    }
+
+    //탈퇴한 회원인지 확인
+    public boolean isDeleted() {
+        return deletedAt != null;
+    }
 }
 

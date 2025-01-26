@@ -99,7 +99,6 @@ public class MemberController {
     )
     public ResponseEntity<CustomResponse<AccessTokenResponseDTO.ReturnTokenDTO>> refreshAccessToken(@RequestBody AccessTokenRequestDTO.CreateAccessTokenDTO dto) {
         //액세스 토큰 재발급
-        System.out.println("1번: " + dto.refreshToken());
         Map<String, String> tokenMap = tokenService.createNewAccessToken(dto.refreshToken());
 
         String newAccessToken = tokenMap.get("accessToken");
@@ -128,6 +127,21 @@ public class MemberController {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(CustomResponse.onSuccess(HttpStatus.OK, response));
+    }
+
+    @DeleteMapping("/delete")
+    @Operation(
+            summary = "회원 탈퇴 API",
+            description = "회원 탈퇴 API 입니다."
+    )
+    public ResponseEntity<CustomResponse<String>> deleteAccount(@AuthenticationPrincipal CustomUserDetails auth) {
+        //memberId 가져오기
+        Long memberId = auth.getMember().getId();
+
+        memberService.deleteMember(memberId);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(CustomResponse.onSuccess(HttpStatus.OK, "회원 탈퇴가 완료되었습니다."));
     }
 
 
