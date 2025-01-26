@@ -122,6 +122,33 @@ public class MemberService {
         member.delete();
     }
 
+    //비밀번호 변경
+    @Transactional
+    public void changePassword(Long memberId, MemberRequestDTO.ChangePasswordDTO dto) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new AuthException(AuthErrorCode.MEMBER_NOT_FOUND));
+
+        // 현재 비밀번호 검증
+        if (!passwordEncoder.matches(dto.currentPassword(), member.getPassword())) {
+            throw new AuthException(AuthErrorCode.INVALID_CREDENTIALS);
+        }
+
+        // 새 비밀번호 유효성 검사
+        if (!dto.newPassword().equals(dto.confirmPassword())) {
+            throw new AuthException(AuthErrorCode.PASSWORDS_DO_NOT_MATCH);
+        }
+
+        // 비밀번호 형식 검사
+        if (dto.newPassword().length() < 8 || !dto.newPassword().matches("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d@$!%*?&]+$")) {
+            throw new AuthException(AuthErrorCode.INVALID_PASSWORD_FORMAT);
+        }
+
+        // 새로운 비밀번호 암호화 & 저장
+        String encodedPassword = passwordEncoder.encode(dto.newPassword());
+        member.updatePassword(encodedPassword);
+        memberRepository.save(member);
+    }
+
 
 
 }

@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -145,8 +146,25 @@ public class MemberController {
     }
 
 
+    @PatchMapping("/password")
+    @Operation(
+            summary = "비밀번호 변경 API",
+            description = "현재 비밀번호를 검증 후 새 비밀번호로 변경하는 API입니다."
+    )
+    public ResponseEntity<CustomResponse<String>> changePassword(@AuthenticationPrincipal CustomUserDetails auth, HttpServletRequest request,@RequestBody @Valid MemberRequestDTO.ChangePasswordDTO dto) {
+        Long memberId = auth.getMember().getId();
 
+        memberService.changePassword(memberId, dto);
 
+        // 로그아웃 처리
+        String accessToken = tokenProvider.resolveToken(request);
+        if (accessToken != null) {
+            tokenService.logout(accessToken);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(CustomResponse.onSuccess(HttpStatus.OK, "비밀번호가 성공적으로 변경되었습니다."));
+    }
 
 
 }

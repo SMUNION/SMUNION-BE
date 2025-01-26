@@ -51,5 +51,10 @@ public class Member extends BaseEntity {
     public boolean isDeleted() {
         return deletedAt != null;
     }
+
+    //비밀번호 변경
+    public void updatePassword(String newPassword) {
+        this.password = newPassword;
+    }
 }
 

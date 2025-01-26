@@ -25,7 +25,15 @@ public enum AuthErrorCode implements BaseErrorCode {
 
     // 로그인 관련 에러
     ALREADY_LOGGED_IN(HttpStatus.BAD_REQUEST, "Auth400_1", "이미 로그인된 상태입니다."),
-    NOT_LOGGED_IN(HttpStatus.BAD_REQUEST, "Auth400_2", "로그인 상태가 아닙니다.");
+    NOT_LOGGED_IN(HttpStatus.BAD_REQUEST, "Auth400_2", "로그인 상태가 아닙니다."),
+
+    // 비밀번호 관련 에러
+    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "Auth401_1", "현재 비밀번호가 올바르지 않습니다."),
+    PASSWORDS_DO_NOT_MATCH(HttpStatus.BAD_REQUEST, "Auth400_3", "새 비밀번호가 일치하지 않습니다."),
+    INVALID_PASSWORD_FORMAT(HttpStatus.BAD_REQUEST, "Auth400_4", "비밀번호 형식이 올바르지 않습니다. 비밀번호는 최소 8자 이상이어야 하며, 알파벳과 숫자가 포함된 조합이어야 합니다.");
+
+
+
 
     private final HttpStatus status;
     private final String code;
