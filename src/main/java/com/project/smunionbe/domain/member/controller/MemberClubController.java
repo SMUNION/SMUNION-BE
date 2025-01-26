@@ -1,6 +1,7 @@
 package com.project.smunionbe.domain.member.controller;
 
 import com.project.smunionbe.domain.member.converter.MemberClubConverter;
+import com.project.smunionbe.domain.member.dto.request.MemberClubRequestDTO;
 import com.project.smunionbe.domain.member.dto.response.MemberClubResponseDTO;
 import com.project.smunionbe.domain.member.entity.MemberClub;
 import com.project.smunionbe.domain.member.security.CustomUserDetails;
@@ -79,4 +80,21 @@ public class MemberClubController {
         MemberClubResponseDTO.MemberClubResponse response = memberClubService.findById(selectedMemberClubId);
         return ResponseEntity.ok(CustomResponse.onSuccess(HttpStatus.OK, response));
     }
+
+    @PatchMapping("/clubs/nickname/{memberClubId}")
+    @Operation(
+            summary = "동아리 닉네임 변경 API",
+            description = "가입되어 있는 동아리의 닉네임을 변경하는 API입니다."
+    )
+    public ResponseEntity<CustomResponse<MemberClubResponseDTO.MemberClubResponse>> getSelectedMemberClub(@RequestBody MemberClubRequestDTO.ChangeNicknameDTO dto, @AuthenticationPrincipal CustomUserDetails auth, @PathVariable Long memberClubId) {
+        //멤버 id 가져오기
+        Long memberId = auth.getMember().getId();
+
+        //닉네임 변경
+        MemberClubResponseDTO.MemberClubResponse response = memberClubService.changeNickname(dto, memberId, memberClubId);
+
+        return ResponseEntity.ok(CustomResponse.onSuccess(HttpStatus.OK, response));
+    }
+
+
 }

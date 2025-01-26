@@ -28,6 +28,9 @@ public interface MemberClubRepository extends JpaRepository<MemberClub, Long> {
 
     MemberClub findByMemberIdAndClubId(Long memberId, Long clubId);
 
+    @Query("SELECT mc FROM MemberClub mc WHERE mc.member.id = :memberId AND mc.id = :memberClubId")
+    Optional<MemberClub> findByIdAndMemberId(Long memberClubId, Long memberId);
+
     // 멤버가 가입되어 있는 동아리 전체 조회
     List<MemberClub> findAllByMemberId(Long memberId);
 

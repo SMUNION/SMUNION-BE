@@ -5,6 +5,7 @@ import com.project.smunionbe.domain.club.entity.Department;
 import com.project.smunionbe.domain.club.repository.ClubRepository;
 import com.project.smunionbe.domain.club.repository.DepartmentRepository;
 import com.project.smunionbe.domain.member.converter.MemberClubConverter;
+import com.project.smunionbe.domain.member.dto.request.MemberClubRequestDTO;
 import com.project.smunionbe.domain.member.dto.response.MemberClubResponseDTO;
 import com.project.smunionbe.domain.member.entity.Member;
 import com.project.smunionbe.domain.member.entity.MemberClub;
@@ -107,5 +108,33 @@ public class MemberClubService {
 
         // 세션에 선택된 프로필 저장
         clubSelectionService.setSelectedProfile(session, memberId, memberClubId);
+    }
+
+    //동아리 닉네임 변경
+    @Transactional
+    public MemberClubResponseDTO.MemberClubResponse changeNickname(MemberClubRequestDTO.ChangeNicknameDTO dto, Long memberId, Long memberClubId) {
+        //닉네임 입력이 비어있을 경우 예외처리
+        if (dto.newNickname() == null || dto.newNickname().isEmpty()) {
+            throw new MemberClubException(MemberClubErrorCode.BLANK_NICKNAME);
+        }
+
+        // 해당 동아리 가입 정보 조회
+        MemberClub memberClub = memberClubRepository.findByIdAndMemberId(memberClubId, memberId)
+                .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.MEMBER_CLUB_NOT_FOUND_MEMBER));
+
+        Long clubId = memberClub.getClub().getId();
+        Long departmentId = memberClub.getDepartment().getId();
+        Club club = clubRepository.findById(clubId)
+                .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.CLUB_NOT_FOUND));
+        Department department = departmentRepository.findById(departmentId)
+                .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.DEPARTMENT_NOT_FOUND));
+
+        // 닉네임 변경
+        memberClub.updateNickname(dto.newNickname());
+
+        // 변경된 닉네임 저장
+        memberClubRepository.save(memberClub);
+
+        return memberClubConverter.toResponse(memberClub, club, department);
     }
 }
