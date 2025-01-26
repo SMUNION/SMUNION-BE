@@ -3,6 +3,7 @@ package com.project.smunionbe.domain.member.controller;
 import com.project.smunionbe.domain.member.dto.request.AccessTokenRequestDTO;
 import com.project.smunionbe.domain.member.dto.request.MemberRequestDTO;
 import com.project.smunionbe.domain.member.dto.response.AccessTokenResponseDTO;
+import com.project.smunionbe.domain.member.dto.response.MemberResponseDTO;
 import com.project.smunionbe.domain.member.entity.Member;
 import com.project.smunionbe.domain.member.exception.AuthErrorCode;
 import com.project.smunionbe.domain.member.security.CustomUserDetails;
@@ -112,6 +113,24 @@ public class MemberController {
                 .body(CustomResponse.onSuccess(HttpStatus.OK, returnTokenDTO));
 
     }
+
+
+    @GetMapping()
+    @Operation(
+            summary = "프로필 조회 API",
+            description = "회원의 프로필을 조회하는 API 입니다."
+    )
+    public ResponseEntity<CustomResponse<MemberResponseDTO.MemberProfileResponse>> getProfile(@AuthenticationPrincipal CustomUserDetails auth) {
+        //memberId 가져오기
+        Long memberId = auth.getMember().getId();
+
+        MemberResponseDTO.MemberProfileResponse response = memberService.getProfile(memberId);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(CustomResponse.onSuccess(HttpStatus.OK, response));
+    }
+
+
 
 
 

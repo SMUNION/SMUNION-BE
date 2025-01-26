@@ -2,6 +2,7 @@ package com.project.smunionbe.domain.member.service;
 
 import com.project.smunionbe.domain.member.converter.MemberConverter;
 import com.project.smunionbe.domain.member.dto.request.MemberRequestDTO;
+import com.project.smunionbe.domain.member.dto.response.MemberResponseDTO;
 import com.project.smunionbe.domain.member.entity.Member;
 import com.project.smunionbe.domain.member.exception.AuthErrorCode;
 import com.project.smunionbe.domain.member.exception.AuthException;
@@ -85,6 +86,21 @@ public class MemberService {
         }
 
         return member;
+    }
+
+
+    // 회원 프로필 조회
+    @Transactional(readOnly = true)
+    public MemberResponseDTO.MemberProfileResponse getProfile(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new AuthException(AuthErrorCode.MEMBER_NOT_FOUND));
+
+        return memberConverter.toMemberProfile(member, extractStudentNumber(member.getEmail()));
+    }
+
+    // 이메일에서 학번만 추출
+    private String extractStudentNumber(String email) {
+        return email.split("@")[0];
     }
 
 

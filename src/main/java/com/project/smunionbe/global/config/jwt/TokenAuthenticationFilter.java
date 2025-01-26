@@ -49,6 +49,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                         requestURI.startsWith("/api/v1/users/refresh") ||  //  Access Token 재발급 API 필터링 제외
                         requestURI.startsWith("/api/v1/email/verify"));
 
+
     }
 
     @Override
