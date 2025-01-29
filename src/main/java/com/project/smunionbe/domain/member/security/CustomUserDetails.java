@@ -44,7 +44,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true; // 계정 잠금 여부 로직을 필요에 따라 추가 가능
+        return !member.isDeleted(); //탈퇴한 계정은 로그인 차단
     }
 
     @Override
@@ -54,7 +54,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return member.getDeletedAt() == null; // 계정 활성 여부를 deletedAt 값으로 결정
+        return !member.isDeleted(); //  탈퇴한 계정은 활성화 X
     }
 }
 

@@ -2,6 +2,7 @@ package com.project.smunionbe.domain.member.service;
 
 import com.project.smunionbe.domain.member.converter.MemberConverter;
 import com.project.smunionbe.domain.member.dto.request.MemberRequestDTO;
+import com.project.smunionbe.domain.member.dto.response.MemberResponseDTO;
 import com.project.smunionbe.domain.member.entity.Member;
 import com.project.smunionbe.domain.member.exception.AuthErrorCode;
 import com.project.smunionbe.domain.member.exception.AuthException;
@@ -84,7 +85,68 @@ public class MemberService {
             throw new AuthException(AuthErrorCode.INVALID_MEMBER_PASSWORD);
         }
 
+        // 탈퇴한 회원이면 로그인 차단
+        if (member.isDeleted()) {
+            throw new AuthException(AuthErrorCode.MEMBER_DELETED);
+        }
+
         return member;
+    }
+
+
+    // 회원 프로필 조회
+    @Transactional(readOnly = true)
+    public MemberResponseDTO.MemberProfileResponse getProfile(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new AuthException(AuthErrorCode.MEMBER_NOT_FOUND));
+
+        return memberConverter.toMemberProfile(member, extractStudentNumber(member.getEmail()));
+    }
+
+    // 이메일에서 학번만 추출
+    private String extractStudentNumber(String email) {
+        return email.split("@")[0];
+    }
+
+    // 회원 탈퇴
+    @Transactional
+    public void deleteMember(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new AuthException(AuthErrorCode.MEMBER_NOT_FOUND));
+
+        if (member.isDeleted()) {
+            throw new AuthException(AuthErrorCode.MEMBER_ALREADY_DELETED);
+        }
+
+        //회원 탈퇴 Soft Delete 수행
+        member.delete();
+    }
+
+    //비밀번호 변경
+    @Transactional
+    public void changePassword(Long memberId, MemberRequestDTO.ChangePasswordDTO dto) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new AuthException(AuthErrorCode.MEMBER_NOT_FOUND));
+
+        // 현재 비밀번호 검증
+        if (!passwordEncoder.matches(dto.currentPassword(), member.getPassword())) {
+            throw new AuthException(AuthErrorCode.INVALID_CREDENTIALS);
+        }
+
+        // 새 비밀번호 유효성 검사
+        if (!dto.newPassword().equals(dto.confirmPassword())) {
+            throw new AuthException(AuthErrorCode.PASSWORDS_DO_NOT_MATCH);
+        }
+
+        // 비밀번호 형식 검사
+        if (dto.newPassword().length() < 8 || !dto.newPassword().matches("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d@$!%*?&]+$")) {
+            throw new AuthException(AuthErrorCode.INVALID_PASSWORD_FORMAT);
+        }
+
+        // 새로운 비밀번호 암호화 & 저장
+        String encodedPassword = passwordEncoder.encode(dto.newPassword());
+        member.updatePassword(encodedPassword);
+        memberRepository.save(member);
     }
 
 

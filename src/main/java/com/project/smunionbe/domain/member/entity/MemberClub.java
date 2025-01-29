@@ -34,5 +34,10 @@ public class MemberClub {
 
     @Column(name = "is_Staff")
     private boolean is_Staff;
+
+    //닉네임 변경 메서드
+    public void updateNickname(String newNickname) {
+        this.nickname = newNickname;
+    }
 }
 

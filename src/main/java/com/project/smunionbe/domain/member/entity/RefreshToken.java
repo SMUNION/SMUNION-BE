@@ -17,7 +17,8 @@ public class RefreshToken {
     @Column(name = "member_id", nullable = false, unique = true)
     private Long memberId;
 
-    @Column(name = "refresh_token", nullable = false)
+    @Lob
+    @Column(name = "refresh_token", nullable = false, columnDefinition = "TEXT")
     private String refreshToken;
 
     public RefreshToken(Long memberId, String refreshToken) {

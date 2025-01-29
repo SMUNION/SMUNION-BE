@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.time.Duration;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -26,6 +27,7 @@ import java.util.Set;
 public class TokenProvider {
     private final JwtProperties jwtProperties;
     private final MemberRepository memberRepository;
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public String generateAccessToken(Member member, Duration expiredAt) {
         Date now = new Date();
@@ -50,6 +52,7 @@ public class TokenProvider {
                 .setSubject(member.getEmail())
                 .claim("tokenType", tokenType) //accessToken과 refreshToken 구분
                 .claim("id", member.getId())
+                .claim("deletedAt", member.getDeletedAt() != null ? member.getDeletedAt().format(formatter) : null) //탈퇴여부 추가
                 .signWith(SignatureAlgorithm.HS256, jwtProperties.getSecretKey())
                 .compact();
     }
@@ -107,7 +110,7 @@ public class TokenProvider {
     }
 
     //클레임을 조회해서 반환하는 메서드
-    private Claims getClaims(String token) {
+    public Claims getClaims(String token) {
         return Jwts.parser() //클레임 조회
                 .setSigningKey(jwtProperties.getSecretKey()).build()
                 .parseClaimsJws(token)
