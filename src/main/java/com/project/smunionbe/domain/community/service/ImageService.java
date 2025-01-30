@@ -33,7 +33,7 @@ public class ImageService{
         return random+originName;
     }
 
-    private String uploadImageToS3(MultipartFile image) { //이미지를 S3에 업로드하고 이미지의 url을 반환
+    public String uploadImageToS3(MultipartFile image) { //이미지를 S3에 업로드하고 이미지의 url을 반환
         String originName = image.getOriginalFilename(); //원본 이미지 이름
         String ext = originName.substring(originName.lastIndexOf(".")); //확장자
         String changedName = changedImageName(originName); //새로 생성된 이미지 이름

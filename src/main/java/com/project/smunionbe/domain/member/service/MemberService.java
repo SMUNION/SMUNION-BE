@@ -1,5 +1,6 @@
 package com.project.smunionbe.domain.member.service;
 
+import com.project.smunionbe.domain.community.service.ImageService;
 import com.project.smunionbe.domain.member.converter.MemberConverter;
 import com.project.smunionbe.domain.member.dto.request.MemberRequestDTO;
 import com.project.smunionbe.domain.member.dto.response.MemberResponseDTO;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @RequiredArgsConstructor
 @Service
@@ -20,6 +22,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final MemberConverter memberConverter;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final ImageService imageService;
 
     @Transactional
     public Long save(MemberRequestDTO.CreateMemberDTO dto) {
@@ -146,6 +149,61 @@ public class MemberService {
         // 새로운 비밀번호 암호화 & 저장
         String encodedPassword = passwordEncoder.encode(dto.newPassword());
         member.updatePassword(encodedPassword);
+        memberRepository.save(member);
+    }
+
+
+    //프로필 이미지 추가 / 수정
+    @Transactional
+    public MemberResponseDTO.MemberProfileImageResponse updateProfileImage(Long memberId, MultipartFile image) {
+        // 회원 조회
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        // 기존 프로필 사진 삭제 (기존 사진이 있을 경우)
+        if (member.getProfileImage() != null) {
+            imageService.deleteImageFromS3(member.getProfileImage());
+        }
+
+        // 새 프로필 사진 업로드
+        String profileImageUrl = imageService.uploadImageToS3(image);
+
+        // 회원 엔티티에 업데이트
+        member.updateProfileImage(profileImageUrl);
+        memberRepository.save(member);
+
+        return memberConverter.toMemberProfileImage(member, profileImageUrl);
+    }
+
+    // 회원의 이미지 조회
+    @Transactional(readOnly = true)
+    public MemberResponseDTO.MemberProfileImageResponse getProfileImage(Long memberId) {
+        // 회원 조회
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+
+        String profileImage = member.getProfileImage() != null ? member.getProfileImage() : null;
+        return memberConverter.toMemberProfileImage(member, profileImage);
+    }
+
+    // 회원의 프로필 이미지 삭제
+    @Transactional
+    public void deleteProfileImage(Long memberId) {
+        //회원 조회
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        //프로필 이미지가 없는 경우 예외 처리
+        if (member.getProfileImage() == null) {
+            throw new MemberException(MemberErrorCode.PROFILE_IMAGE_NOT_FOUND);
+        }
+
+        //기존 프로필 이미지 S3에서 삭제
+        imageService.deleteImageFromS3(member.getProfileImage());
+
+        //DB에서 프로필 이미지 정보 제거 (null로 설정)
+        member.updateProfileImage(null);
         memberRepository.save(member);
     }
 

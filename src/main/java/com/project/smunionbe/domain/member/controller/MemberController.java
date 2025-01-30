@@ -25,6 +25,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -164,6 +165,52 @@ public class MemberController {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(CustomResponse.onSuccess(HttpStatus.OK, "비밀번호가 성공적으로 변경되었습니다."));
+    }
+
+    @PatchMapping("/profile-image")
+    @Operation(
+            summary = "프로필 사진 등록/수정 API",
+            description = "회원의 프로필 사진을 등록하거나 수정하는 API입니다."
+    )
+    public ResponseEntity<CustomResponse<MemberResponseDTO.MemberProfileImageResponse>> updateProfileImage(
+            @AuthenticationPrincipal CustomUserDetails auth,
+            @RequestPart(value = "image", required = true) MultipartFile image) {
+
+        Long memberId = auth.getMember().getId();
+        MemberResponseDTO.MemberProfileImageResponse response = memberService.updateProfileImage(memberId, image);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(CustomResponse.onSuccess(HttpStatus.OK, response));
+    }
+
+    @GetMapping("/profile-image")
+    @Operation(
+            summary = "프로필 사진 조회 API",
+            description = "회원의 프로필 사진을 조회하는 API입니다."
+    )
+    public ResponseEntity<CustomResponse<MemberResponseDTO.MemberProfileImageResponse>> getProfileImage(
+            @AuthenticationPrincipal CustomUserDetails auth) {
+
+        Long memberId = auth.getMember().getId();
+        MemberResponseDTO.MemberProfileImageResponse response = memberService.getProfileImage(memberId);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(CustomResponse.onSuccess(HttpStatus.OK, response));
+    }
+
+    @DeleteMapping("/profile-image")
+    @Operation(
+            summary = "프로필 사진 삭제 API",
+            description = "회원의 프로필 사진을 삭제하는 API입니다."
+    )
+    public ResponseEntity<CustomResponse<String>> deleteProfileImage(
+            @AuthenticationPrincipal CustomUserDetails auth) {
+
+        Long memberId = auth.getMember().getId();
+        memberService.deleteProfileImage(memberId);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(CustomResponse.onSuccess(HttpStatus.OK, "프로필 사진이 삭제되었습니다."));
     }
 
 
