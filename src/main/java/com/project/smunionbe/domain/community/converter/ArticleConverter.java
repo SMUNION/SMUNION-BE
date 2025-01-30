@@ -5,10 +5,13 @@ import com.project.smunionbe.domain.club.entity.Department;
 import com.project.smunionbe.domain.community.dto.request.ArticleRequestDTO;
 import com.project.smunionbe.domain.community.dto.response.ArticleResponseDTO;
 import com.project.smunionbe.domain.community.entity.Article;
+import com.project.smunionbe.domain.community.entity.ArticleImages;
 import com.project.smunionbe.domain.member.dto.request.MemberRequestDTO;
 import com.project.smunionbe.domain.member.entity.Member;
 import com.project.smunionbe.domain.member.entity.MemberClub;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class ArticleConverter {
@@ -23,7 +26,7 @@ public class ArticleConverter {
                 .build();
     }
 
-    public ArticleResponseDTO.ArticleResponse toArticleResponseDto(Article article, String clubName, String departmentName, String nickname) {
-        return new ArticleResponseDTO.ArticleResponse(article.getId(), clubName, departmentName, nickname, article.getTitle(), article.getContent(), article.getLikeNum(), article.getCreatedAt());
+    public ArticleResponseDTO.ArticleResponse toArticleResponseDto(Article article, List<String> imageUrls, String clubName, String departmentName, String nickname) {
+        return new ArticleResponseDTO.ArticleResponse(article.getId(), clubName, departmentName, nickname, article.getTitle(), article.getContent(), imageUrls, article.getLikeNum(), article.getCreatedAt());
     }
 }
