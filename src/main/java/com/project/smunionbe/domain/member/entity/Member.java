@@ -35,6 +35,9 @@ public class Member extends BaseEntity {
     @Column(name = "name", nullable = false)
     private String name;
 
+    @Column(name = "profile_image")
+    private String profileImage;
+
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
@@ -55,6 +58,11 @@ public class Member extends BaseEntity {
     //비밀번호 변경
     public void updatePassword(String newPassword) {
         this.password = newPassword;
+    }
+
+    // 프로필 이미지 업데이트 메서드 추가
+    public void updateProfileImage(String profileImageUrl) {
+        this.profileImage = profileImageUrl;
     }
 }
 

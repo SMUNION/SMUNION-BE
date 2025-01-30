@@ -33,4 +33,11 @@ public class MemberConverter {
                 studentNumber
         );
     }
+
+    public MemberResponseDTO.MemberProfileImageResponse toMemberProfileImage(Member member, String imageUrl) {
+        return new MemberResponseDTO.MemberProfileImageResponse(
+                member.getId(),
+                imageUrl
+        );
+    }
 }

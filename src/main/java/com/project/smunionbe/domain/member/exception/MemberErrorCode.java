@@ -28,6 +28,9 @@ public enum MemberErrorCode implements BaseErrorCode {
     MEMBER_ALREADY_INACTIVE(HttpStatus.CONFLICT, "Member409_2", "이미 비활성화된 멤버입니다."),
     MEMBER_STATUS_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Member500_1", "멤버 상태 업데이트에 실패했습니다."),
 
+    //프로필 이미지 관련 에러
+    PROFILE_IMAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "Member404_1", "프로필 사진이 존재하지 않습니다."),
+
     // 공통 처리
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "Member400_0", "잘못된 요청입니다.");
 

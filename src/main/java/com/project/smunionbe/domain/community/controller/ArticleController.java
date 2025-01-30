@@ -4,6 +4,7 @@ import com.project.smunionbe.domain.community.dto.request.ArticleRequestDTO;
 import com.project.smunionbe.domain.community.dto.response.ArticleResponseDTO;
 import com.project.smunionbe.domain.community.entity.Article;
 import com.project.smunionbe.domain.community.service.ArticleService;
+import com.project.smunionbe.domain.community.service.ImageService;
 import com.project.smunionbe.domain.member.dto.request.MemberRequestDTO;
 import com.project.smunionbe.domain.member.security.CustomUserDetails;
 import com.project.smunionbe.domain.member.service.ClubSelectionService;
@@ -18,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -33,15 +35,20 @@ public class ArticleController {
     @PostMapping()
     @Operation(
             summary = "게시글 작성 API",
-            description = "게시글 작성 API"
+            description = "게시글 작성 API, 이미지가 있을 경우 multipart/form-data로 요청해주세요."
     )
-    public ResponseEntity<CustomResponse<ArticleResponseDTO.ArticleResponse>> createArticle(@RequestBody ArticleRequestDTO.CreateArticleRequest dto, @AuthenticationPrincipal CustomUserDetails auth, HttpSession session) {
+    public ResponseEntity<CustomResponse<ArticleResponseDTO.ArticleResponse>> createArticle(
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
+            @RequestPart ArticleRequestDTO.CreateArticleRequest request,
+            @AuthenticationPrincipal CustomUserDetails auth,
+            HttpSession session) {
+
         //세션에서 memberClubId 가져오기
         Long memberId = auth.getMember().getId();
         Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, memberId);
 
         // 게시글 생성
-        ArticleResponseDTO.ArticleResponse response = articleService.createArticle(dto, selectedMemberClubId);
+        ArticleResponseDTO.ArticleResponse response = articleService.createArticle(request, selectedMemberClubId, images);
 
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -80,12 +87,17 @@ public class ArticleController {
             summary = "게시글 수정 API",
             description = "게시글 수정 API입니다. 제목과 내용 중 수정된 부분만 request로 보내면 됩니다."
     )
-    public ResponseEntity<CustomResponse<ArticleResponseDTO.ArticleResponse>> updateArticle(@PathVariable Long articleId, @RequestBody ArticleRequestDTO.UpdateArticleRequest request, @AuthenticationPrincipal CustomUserDetails auth, HttpSession session) {
+    public ResponseEntity<CustomResponse<ArticleResponseDTO.ArticleResponse>> updateArticle(
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
+            @PathVariable Long articleId,
+            @RequestPart ArticleRequestDTO.UpdateArticleRequest request,
+            @AuthenticationPrincipal CustomUserDetails auth,
+            HttpSession session) {
         //세션에서 memberClubId 가져오기
         Long memberId = auth.getMember().getId();
         Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, memberId);
 
-        ArticleResponseDTO.ArticleResponse response = articleService.updateArticle(articleId, selectedMemberClubId, request);
+        ArticleResponseDTO.ArticleResponse response = articleService.updateArticle(articleId, selectedMemberClubId, request, images);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(CustomResponse.onSuccess(HttpStatus.OK, response));

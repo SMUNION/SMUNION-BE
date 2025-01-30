@@ -7,4 +7,9 @@ public class MemberResponseDTO {
             String major,
             String studentNumber
     ) {}
+
+    public record MemberProfileImageResponse(
+            Long id,
+            String profileImage
+    ) {}
 }
