@@ -14,6 +14,7 @@ public enum AuthErrorCode implements BaseErrorCode {
     JWT_TOKEN_MALFORMED(HttpStatus.UNAUTHORIZED, "Auth401_2", "JWT 토큰 형식이 올바르지 않습니다."),
     REFRESH_TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "Auth401_3", "refresh 토큰이 유효하지 않습니다."),
     JWT_SIGNATURE_INVALID(HttpStatus.UNAUTHORIZED, "Auth401_4", "JWT 서명이 유효하지 않습니다."),
+    JWT_TOKEN_NULL(HttpStatus.UNAUTHORIZED, "Auth401_5", "JWT 토큰이 비어있습니다. 토큰과 함께 요청해주세요."),
     JWT_AUTHENTICATION_FAILED(HttpStatus.FORBIDDEN, "Auth403_0", "JWT 인증에 실패했습니다."),
     INSUFFICIENT_PERMISSIONS(HttpStatus.FORBIDDEN, "Auth403_1", "권한이 부족합니다."),
 
