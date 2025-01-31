@@ -1,5 +1,6 @@
 package com.project.smunionbe.domain.notification.fee.repository;
 
+import com.project.smunionbe.domain.club.entity.Gallery;
 import com.project.smunionbe.domain.notification.fee.entity.FeeNotice;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,4 +22,7 @@ public interface FeeNoticeRepository extends JpaRepository<FeeNotice, Long> {
             @Param("cursor") Long cursor,
             Pageable pageable
     );
+
+    List<FeeNotice> findAllByClubId(Long clubId);
+
 }

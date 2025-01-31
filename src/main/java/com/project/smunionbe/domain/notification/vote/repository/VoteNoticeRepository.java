@@ -1,11 +1,14 @@
 package com.project.smunionbe.domain.notification.vote.repository;
 
+import com.project.smunionbe.domain.club.entity.Gallery;
 import com.project.smunionbe.domain.notification.vote.entity.VoteNotice;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import java.util.List;
 
 public interface VoteNoticeRepository extends JpaRepository<VoteNotice, Long> {
 
@@ -18,4 +21,7 @@ public interface VoteNoticeRepository extends JpaRepository<VoteNotice, Long> {
             @Param("cursor") Long cursor,
             Pageable pageable
     );
+    List<VoteNotice> findAllByClubId(Long clubId);
+
+
 }

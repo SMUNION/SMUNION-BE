@@ -1,5 +1,6 @@
 package com.project.smunionbe.domain.notification.attendance.repository;
 
+import com.project.smunionbe.domain.club.entity.Gallery;
 import com.project.smunionbe.domain.notification.attendance.entity.AttendanceNotice;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -21,4 +22,7 @@ public interface AttendanceRepository extends JpaRepository<AttendanceNotice, Lo
             @Param("cursor") Long cursor,
             Pageable pageable
     );
+
+    List<AttendanceNotice> findAllByClubId(Long clubId);
+
 }
