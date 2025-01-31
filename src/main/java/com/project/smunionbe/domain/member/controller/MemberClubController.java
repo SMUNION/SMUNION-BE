@@ -39,9 +39,9 @@ public class MemberClubController {
             summary = "해당 멤버가 가입되어있는 모든 동아리 조회 API",
             description = "해당 멤버가 가입되어있는 모든 동아리 조회 API 입니다. accessToken과 함께 요청해주세요.(\"Bearer \"없이 토큰만 입력해주세요)"
     )
-    public ResponseEntity<CustomResponse<List<MemberClubResponseDTO.MemberClubResponse>>> getClubs(HttpServletRequest request) {
+    public ResponseEntity<CustomResponse<List<MemberClubResponseDTO.MemberClubResponse>>> getClubs(@AuthenticationPrincipal CustomUserDetails auth) {
 
-        Long memberId = tokenProvider.getUserId(tokenProvider.resolveToken(request));
+        Long memberId = auth.getMember().getId();
         List<MemberClubResponseDTO.MemberClubResponse> responses = memberClubService.findAllByMemberId(memberId);
 
         // 성공 응답 반환
@@ -55,8 +55,8 @@ public class MemberClubController {
             summary = "특정 동아리 프로필 선택 API",
             description = "조회된 동아리 리스트 중 하나를 선택하여 세션에 저장하는 API 입니다."
     )
-    public ResponseEntity<CustomResponse<MemberClubResponseDTO.MemberClubResponse>> selectClubProfile(@RequestParam Long memberClubId, HttpServletRequest request, HttpSession session) {
-        Long memberId = tokenProvider.getUserId(tokenProvider.resolveToken(request));
+    public ResponseEntity<CustomResponse<MemberClubResponseDTO.MemberClubResponse>> selectClubProfile(@RequestParam Long memberClubId, @AuthenticationPrincipal CustomUserDetails auth, HttpSession session) {
+        Long memberId = auth.getMember().getId();
         memberClubService.validateAndSetSelectedProfile(memberId, memberClubId, session);
 
         MemberClubResponseDTO.MemberClubResponse response = memberClubService.findById(memberClubId);
@@ -73,8 +73,8 @@ public class MemberClubController {
             summary = "선택된 동아리 프로필 조회 API",
             description = "현재 세션에 저장된 선택된 동아리 프로필 정보를 조회하는 API"
     )
-    public ResponseEntity<CustomResponse<MemberClubResponseDTO.MemberClubResponse>> getSelectedMemberClub(HttpServletRequest request, HttpSession session) {
-        Long memberId = tokenProvider.getUserId(tokenProvider.resolveToken(request));
+    public ResponseEntity<CustomResponse<MemberClubResponseDTO.MemberClubResponse>> getSelectedMemberClub(@AuthenticationPrincipal CustomUserDetails auth, HttpSession session) {
+        Long memberId = auth.getMember().getId();
         Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, memberId);
 
         MemberClubResponseDTO.MemberClubResponse response = memberClubService.findById(selectedMemberClubId);
