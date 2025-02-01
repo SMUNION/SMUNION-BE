@@ -4,6 +4,7 @@ import com.project.smunionbe.domain.member.entity.MemberClub;
 import com.project.smunionbe.domain.notification.basic.entity.BasicNotice;
 import com.project.smunionbe.domain.notification.basic.entity.BasicNoticeStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -27,4 +28,9 @@ public interface BasicNoticeStatusRepository extends JpaRepository<BasicNoticeSt
             @Param("notice") BasicNotice notice,
             @Param("memberClub") MemberClub memberClub
     );
+
+    @Modifying
+    @Query("DELETE FROM BasicNoticeStatus bns WHERE bns.basicNotice = :basicNotice")
+    void deleteByBasicNotice(@Param("basicNotice") BasicNotice basicNotice);
+
 }

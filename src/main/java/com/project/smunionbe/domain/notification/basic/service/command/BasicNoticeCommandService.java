@@ -124,5 +124,31 @@ public class BasicNoticeCommandService {
         log.info("공지 읽음 상태가 업데이트되었습니다. noticeId: {}, memberClubId: {}", noticeId, memberClubId);
     }
 
+    public void deleteBasicNotice(Long noticeId, Long memberClubId) {
+        // 1. MemberClub 조회 및 운영진 여부 검증
+        MemberClub memberClub = memberClubRepository.findById(memberClubId)
+                .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.MEMBER_CLUB_NOT_FOUND));
+
+        if (!memberClub.is_Staff()) {
+            throw new BasicNoticeException(BasicNoticeErrorCode.ACCESS_DENIED);
+        }
+
+        // 2. BasicNotice 조회
+        BasicNotice basicNotice = basicNoticeRepository.findById(noticeId)
+                .orElseThrow(() -> new BasicNoticeException(BasicNoticeErrorCode.NOTICE_NOT_FOUND));
+
+        // 권한 확인 (공지의 동아리와 멤버가 속한 동아리 비교)
+        if (!basicNotice.getClub().getId().equals(memberClub.getClub().getId())) {
+            throw new BasicNoticeException(BasicNoticeErrorCode.ACCESS_DENIED);
+        }
+
+        // 3. 연관된 BasicNoticeStatus 삭제
+        basicNoticeStatusRepository.deleteByBasicNotice(basicNotice);
+
+        // 4. BasicNotice 삭제
+        basicNoticeRepository.delete(basicNotice);
+
+        log.info("일반 공지가 삭제되었습니다. noticeId: {}, memberClubId: {}", noticeId, memberClubId);
+    }
 }
 

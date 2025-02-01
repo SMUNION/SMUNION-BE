@@ -114,4 +114,16 @@ public class BasicNoticeController {
         return CustomResponse.onSuccess("공지 읽음 상태가 업데이트되었습니다.");
     }
 
+    @DeleteMapping("/{id}")
+    @Operation(summary = "일반 공지 삭제 API", description = "해당 공지를 삭제합니다.")
+    public CustomResponse<String> deleteBasicNotice(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails authMember,
+            HttpSession session) {
+
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, authMember.getMember().getId());
+        basicNoticeCommandService.deleteBasicNotice(id, selectedMemberClubId);
+
+        return CustomResponse.onSuccess("일반 공지가 성공적으로 삭제되었습니다.");
+    }
 }
