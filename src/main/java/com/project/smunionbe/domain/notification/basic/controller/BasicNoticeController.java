@@ -86,4 +86,19 @@ public class BasicNoticeController {
 
         return CustomResponse.onSuccess(response);
     }
+
+    @PatchMapping("/{id}")
+    @Operation(summary = "일반 공지 수정 API", description = "기존 일반 공지의 내용을 수정합니다.")
+    public CustomResponse<String> updateBasicNotice(
+            @PathVariable Long id,
+            @RequestBody @Valid BasicNoticeReqDTO.UpdateBasicNoticeRequest request,
+            @AuthenticationPrincipal CustomUserDetails authMember,
+            HttpSession session) {
+
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, authMember.getMember().getId());
+        basicNoticeCommandService.updateBasicNotice(id, request, selectedMemberClubId);
+
+        return CustomResponse.onSuccess("일반 공지가 성공적으로 수정되었습니다.");
+    }
+
 }

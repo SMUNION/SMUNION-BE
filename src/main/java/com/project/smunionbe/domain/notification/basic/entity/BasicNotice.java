@@ -35,5 +35,12 @@ public class BasicNotice extends BaseEntity {
 
     @Column(name = "date")
     private LocalDateTime date;
+
+    public void update(String title, String content, String target, LocalDateTime date) {
+        this.title = title;
+        this.content = content;
+        this.target = target;
+        this.date = date;
+    }
 }
 

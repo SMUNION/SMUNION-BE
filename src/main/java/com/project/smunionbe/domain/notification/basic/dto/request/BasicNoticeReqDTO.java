@@ -12,4 +12,12 @@ public class BasicNoticeReqDTO {
             LocalDateTime date
     ) {
     }
+
+    public record UpdateBasicNoticeRequest(
+            String title,
+            String content,
+            List<String> targetDepartments,
+            LocalDateTime date
+    ) {
+    }
 }

@@ -55,5 +55,41 @@ public class BasicNoticeCommandService {
 
         log.info("일반 공지가 생성되었습니다. basicNoticeId: {}, clubId: {}", basicNotice.getId(), memberClub.getClub().getId());
     }
+
+    public void updateBasicNotice(Long noticeId, BasicNoticeReqDTO.UpdateBasicNoticeRequest request, Long memberClubId) {
+        // 1. MemberClub 조회 및 운영진 여부 검증
+        MemberClub memberClub = memberClubRepository.findById(memberClubId)
+                .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.MEMBER_CLUB_NOT_FOUND));
+
+        if (!memberClub.is_Staff()) {
+            throw new BasicNoticeException(BasicNoticeErrorCode.ACCESS_DENIED);
+        }
+
+        // 2. BasicNotice 조회
+        BasicNotice basicNotice = basicNoticeRepository.findById(noticeId)
+                .orElseThrow(() -> new BasicNoticeException(BasicNoticeErrorCode.NOTICE_NOT_FOUND));
+
+        // 3. 새로운 타겟 멤버 조회
+        List<MemberClub> newTargetMembers = (request.targetDepartments() == null || request.targetDepartments().isEmpty())
+                ? memberClubRepository.findAllByClubId(memberClub.getClub().getId()) // 전체 멤버
+                : memberClubRepository.findAllByClubIdAndDepartments(
+                memberClub.getClub().getId(),
+                request.targetDepartments()
+        );
+
+        if (newTargetMembers.isEmpty()) {
+            throw new BasicNoticeException(BasicNoticeErrorCode.NO_TARGET_MEMBERS);
+        }
+
+        // 4. BasicNotice 수정
+        basicNotice.update(
+                request.title(),
+                request.content(),
+                newTargetMembers.isEmpty() ? "전체" : String.join(",", request.targetDepartments()),
+                request.date()
+        );
+
+        log.info("일반 공지가 수정되었습니다. noticeId: {}, memberClubId: {}", noticeId, memberClubId);
+    }
 }
 
