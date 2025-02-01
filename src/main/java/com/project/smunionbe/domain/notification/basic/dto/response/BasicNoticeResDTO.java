@@ -45,4 +45,18 @@ public class BasicNoticeResDTO {
             String nickname
     ) {
     }
+
+    /**
+     * 일반 공지 상세 응답 DTO
+     */
+    public record BasicNoticeDetailResponse(
+            Long noticeId,
+            String title,
+            String content,
+            String target,
+            LocalDateTime date,
+            LocalDateTime createdAt,
+            String clubName // 동아리 정보 포함
+    ) {
+    }
 }

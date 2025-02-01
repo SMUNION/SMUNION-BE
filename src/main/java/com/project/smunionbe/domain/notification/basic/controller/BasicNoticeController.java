@@ -60,4 +60,17 @@ public class BasicNoticeController {
 
         return CustomResponse.onSuccess(response);
     }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "일반 공지 상세 조회 API", description = "특정 일반 공지의 상세 정보를 조회합니다.")
+    public CustomResponse<BasicNoticeResDTO.BasicNoticeDetailResponse> getBasicNoticeDetail(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails authMember,
+            HttpSession session) {
+
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, authMember.getMember().getId());
+        BasicNoticeResDTO.BasicNoticeDetailResponse response = basicNoticeQueryService.getBasicNoticeDetail(id, selectedMemberClubId);
+
+        return CustomResponse.onSuccess(response);
+    }
 }

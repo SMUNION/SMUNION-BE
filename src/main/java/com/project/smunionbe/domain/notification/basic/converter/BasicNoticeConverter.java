@@ -33,6 +33,18 @@ public class BasicNoticeConverter {
         );
     }
 
+    public static BasicNoticeResDTO.BasicNoticeDetailResponse toBasicNoticeDetailResponse(BasicNotice basicNotice) {
+        return new BasicNoticeResDTO.BasicNoticeDetailResponse(
+                basicNotice.getId(),
+                basicNotice.getTitle(),
+                basicNotice.getContent(),
+                basicNotice.getTarget(),
+                basicNotice.getDate(),
+                basicNotice.getCreatedAt(),
+                basicNotice.getClub().getName() // 동아리 이름 포함
+        );
+    }
+
     public static FCMReqDTO.FCMSendDTO toSendDTO(String fcmToken, BasicNotice basicNotice) {
         return FCMReqDTO.FCMSendDTO.builder()
                 .fcmToken(fcmToken)

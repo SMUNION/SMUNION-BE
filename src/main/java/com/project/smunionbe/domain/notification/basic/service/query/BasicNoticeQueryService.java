@@ -7,6 +7,8 @@ import com.project.smunionbe.domain.member.repository.MemberClubRepository;
 import com.project.smunionbe.domain.notification.basic.converter.BasicNoticeConverter;
 import com.project.smunionbe.domain.notification.basic.dto.response.BasicNoticeResDTO;
 import com.project.smunionbe.domain.notification.basic.entity.BasicNotice;
+import com.project.smunionbe.domain.notification.basic.exception.BasicNoticeErrorCode;
+import com.project.smunionbe.domain.notification.basic.exception.BasicNoticeException;
 import com.project.smunionbe.domain.notification.basic.repository.BasicNoticeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -46,5 +48,19 @@ public class BasicNoticeQueryService {
 
         // 5. 결과 반환
         return new BasicNoticeResDTO.BasicNoticeListResponse(noticeResponses, hasNext, nextCursor);
+    }
+
+    public BasicNoticeResDTO.BasicNoticeDetailResponse getBasicNoticeDetail(Long noticeId, Long memberClubId) {
+        MemberClub memberClub = memberClubRepository.findById(memberClubId)
+                .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.MEMBER_CLUB_NOT_FOUND));
+
+        BasicNotice basicNotice = basicNoticeRepository.findById(noticeId)
+                .orElseThrow(() -> new BasicNoticeException(BasicNoticeErrorCode.NOTICE_NOT_FOUND));
+
+        if (!basicNotice.getClub().getId().equals(memberClub.getClub().getId())) {
+            throw new BasicNoticeException(BasicNoticeErrorCode.ACCESS_DENIED);
+        }
+
+        return BasicNoticeConverter.toBasicNoticeDetailResponse(basicNotice);
     }
 }
