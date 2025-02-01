@@ -7,9 +7,11 @@ import com.project.smunionbe.domain.member.repository.MemberClubRepository;
 import com.project.smunionbe.domain.notification.basic.converter.BasicNoticeConverter;
 import com.project.smunionbe.domain.notification.basic.dto.request.BasicNoticeReqDTO;
 import com.project.smunionbe.domain.notification.basic.entity.BasicNotice;
+import com.project.smunionbe.domain.notification.basic.entity.BasicNoticeStatus;
 import com.project.smunionbe.domain.notification.basic.exception.BasicNoticeErrorCode;
 import com.project.smunionbe.domain.notification.basic.exception.BasicNoticeException;
 import com.project.smunionbe.domain.notification.basic.repository.BasicNoticeRepository;
+import com.project.smunionbe.domain.notification.basic.repository.BasicNoticeStatusRepository;
 import com.project.smunionbe.domain.notification.fcm.service.event.FCMNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +28,7 @@ public class BasicNoticeCommandService {
 
     private final MemberClubRepository memberClubRepository;
     private final BasicNoticeRepository basicNoticeRepository;
+    private final BasicNoticeStatusRepository basicNoticeStatusRepository;
     private final FCMNotificationService fcmNotificationService; // FCM 알림 서비스 주입
 
     public void createBasicNotice(BasicNoticeReqDTO.CreateBasicNoticeRequest request, Long memberClubId) {
@@ -91,5 +94,35 @@ public class BasicNoticeCommandService {
 
         log.info("일반 공지가 수정되었습니다. noticeId: {}, memberClubId: {}", noticeId, memberClubId);
     }
+
+    public void markNoticeAsRead(Long noticeId, Long memberClubId) {
+        // 1. MemberClub 조회 및 검증
+        MemberClub memberClub = memberClubRepository.findById(memberClubId)
+                .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.MEMBER_CLUB_NOT_FOUND));
+
+        // 2. BasicNotice 조회 및 권한 검증
+        BasicNotice basicNotice = basicNoticeRepository.findById(noticeId)
+                .orElseThrow(() -> new BasicNoticeException(BasicNoticeErrorCode.NOTICE_NOT_FOUND));
+        if (!basicNotice.getClub().getId().equals(memberClub.getClub().getId())) {
+            throw new BasicNoticeException(BasicNoticeErrorCode.ACCESS_DENIED);
+        }
+
+        // 3. 읽음 상태 조회
+        BasicNoticeStatus noticeStatus = basicNoticeStatusRepository.findByNoticeAndMemberClub(basicNotice, memberClub)
+                .orElseGet(() -> BasicNoticeStatus.builder()
+                        .basicNotice(basicNotice)
+                        .memberClub(memberClub)
+                        .isRead(false)
+                        .build());
+
+        // 4. 읽음 상태 업데이트 및 저장
+        if (!noticeStatus.isRead()) {
+            noticeStatus.markAsRead();
+            basicNoticeStatusRepository.save(noticeStatus);
+        }
+
+        log.info("공지 읽음 상태가 업데이트되었습니다. noticeId: {}, memberClubId: {}", noticeId, memberClubId);
+    }
+
 }
 

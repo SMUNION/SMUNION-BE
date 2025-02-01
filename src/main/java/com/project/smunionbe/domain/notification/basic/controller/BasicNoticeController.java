@@ -101,4 +101,17 @@ public class BasicNoticeController {
         return CustomResponse.onSuccess("일반 공지가 성공적으로 수정되었습니다.");
     }
 
+    @PatchMapping("/{id}/read")
+    @Operation(summary = "일반 공지 읽음 상태 업데이트 API", description = "특정 일반 공지에 대해 사용자의 읽음 상태를 업데이트합니다.")
+    public CustomResponse<String> markNoticeAsRead(
+            @PathVariable Long noticeId,
+            @AuthenticationPrincipal CustomUserDetails authMember,
+            HttpSession session) {
+
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, authMember.getMember().getId());
+        basicNoticeCommandService.markNoticeAsRead(noticeId, selectedMemberClubId);
+
+        return CustomResponse.onSuccess("공지 읽음 상태가 업데이트되었습니다.");
+    }
+
 }
