@@ -20,8 +20,8 @@ public class GalleryResDTO {
     public record GetGalleryResDTO(
             Long galleryID,
             String name,
-            String thumbnailUrl
-    ){
+            List<String> thumbnailImages
+            ){
     }
 
     public record GetGalleryListResDTO(

@@ -15,8 +15,10 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @Slf4j
@@ -29,34 +31,39 @@ public class ClubController {
     private final ClubQueryService clubQueryService;
     private final ClubSelectionService clubSelectionService;
 
-    @PostMapping("")
+
+    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @Operation(
             summary = "동아리 생성 API",
-            description = "멤버가 동아리를 생성하는 API 입니다."
+            description = "동아리를 생성합니다."
     )
     public CustomResponse<ClubResDTO.CreateClubDTO> createClub(
-            @RequestBody @Valid ClubReqDTO.CreateClubDTO request,
-            @AuthenticationPrincipal CustomUserDetails auth) {
-
-        ClubResDTO.CreateClubDTO response = clubCommandService.createClub(request, auth.getMember().getId());
-
+            @RequestPart(value = "name") String name,
+            @RequestPart(value = "description") String description,
+            @AuthenticationPrincipal CustomUserDetails auth,
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ) {
+        ClubReqDTO.CreateClubDTO request = new ClubReqDTO.CreateClubDTO(name, description);
+        ClubResDTO.CreateClubDTO response = clubCommandService.createClub(request, auth.getMember().getId(), image);
         return CustomResponse.onSuccess(response);
-
     }
 
-    @PatchMapping("/modify")
+    @PatchMapping(path = "/modify", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "동아리 수정 API",
             description = "기존 동아리 내용을 수정합니다."
     )
     public CustomResponse<String> updateClub(
-            @RequestBody @Valid ClubReqDTO.UpdateClubRequest request,
+            @RequestPart(value = "name") String name,
+            @RequestPart(value = "description") String description,
             @AuthenticationPrincipal CustomUserDetails auth,
+            @RequestPart(value = "image", required = false) MultipartFile image,
             HttpSession session
 
     ) {
         Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, auth.getMember().getId());
-        clubCommandService.updateClub(request, selectedMemberClubId);
+        ClubReqDTO.UpdateClubRequest request = new ClubReqDTO.UpdateClubRequest(name, description);
+        clubCommandService.updateClub(request, selectedMemberClubId, image);
         return CustomResponse.onSuccess("동아리 수정 성공");
     }
 

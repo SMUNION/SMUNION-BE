@@ -8,7 +8,10 @@ import com.project.smunionbe.domain.club.exception.ClubErrorCode;
 import com.project.smunionbe.domain.club.exception.ClubException;
 import com.project.smunionbe.domain.club.exception.GalleryErrorCode;
 import com.project.smunionbe.domain.club.exception.GalleryException;
+import com.project.smunionbe.domain.club.repository.GalleryImagesRepository;
 import com.project.smunionbe.domain.club.repository.GalleryRepository;
+import com.project.smunionbe.domain.community.exception.ImageUploadErrorCode;
+import com.project.smunionbe.domain.community.exception.ImageUploadException;
 import com.project.smunionbe.domain.member.entity.Member;
 import com.project.smunionbe.domain.member.entity.MemberClub;
 import com.project.smunionbe.domain.member.exception.MemberClubErrorCode;
@@ -20,12 +23,14 @@ import com.project.smunionbe.domain.notification.attendance.exception.Attendance
 import com.project.smunionbe.domain.notification.attendance.exception.AttendanceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -36,6 +41,7 @@ public class GalleryQueryService {
 
     private final GalleryRepository galleryRepository;
     private final MemberClubRepository memberClubRepository;
+    private final GalleryImagesRepository galleryImagesRepository;
 
     public GalleryResDTO.GetGalleryResDTO getGallery(Long GalleryId, Long memberClubId) {
         // 1. 갤러리 조회 (존재하지 않을 경우 예외 발생)
@@ -48,7 +54,18 @@ public class GalleryQueryService {
             throw new ClubException(ClubErrorCode.ACCESS_DENIED);
         }
 
-        return GalleryConverter.toGetGalleryResponse(gallery);
+        // 저장되어있는 이미지 조회
+        List<String> imageUrls;
+        try {
+            imageUrls = galleryImagesRepository.findImageUrlsByGalleryId(gallery.getId());
+            if (imageUrls == null || imageUrls.isEmpty()) {
+                imageUrls = Collections.emptyList(); // 빈 리스트로 초기화하여 NullPointerException 방지
+            }
+        } catch (DataAccessException e) {
+            throw new ImageUploadException(ImageUploadErrorCode.FILE_READ_ERROR);
+        }
+
+        return GalleryConverter.toGetGalleryResponse(gallery, imageUrls);
     }
 
 
@@ -68,7 +85,7 @@ public class GalleryQueryService {
                 .map(gallery -> new GalleryResDTO.GetGalleryResDTO(
                         gallery.getId(),
                         gallery.getName(),
-                        gallery.getThumbnailUrl()
+                        galleryImagesRepository.findImageUrlsByGalleryId(gallery.getId())
                 ))
                 .toList();
 

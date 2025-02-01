@@ -8,6 +8,7 @@ import com.project.smunionbe.domain.club.entity.Club;
 import com.project.smunionbe.domain.club.exception.ClubErrorCode;
 import com.project.smunionbe.domain.club.exception.ClubException;
 import com.project.smunionbe.domain.club.repository.ClubRepository;
+import com.project.smunionbe.domain.club.repository.GalleryImagesRepository;
 import com.project.smunionbe.domain.club.repository.GalleryRepository;
 import com.project.smunionbe.domain.member.entity.MemberClub;
 import com.project.smunionbe.domain.member.exception.MemberClubErrorCode;
@@ -38,6 +39,7 @@ public class ClubQueryService {
     private final FeeNoticeRepository feeNoticeRepository;
     private final VoteNoticeRepository voteNoticeRepository;
     private final GalleryRepository galleryRepository;
+    private final GalleryImagesRepository galleryImagesRepository;
 
     public ClubResDTO.GetMemberClubListResDTO getAllMemberClubList(
             Long memberClubId
@@ -120,7 +122,9 @@ public class ClubQueryService {
                 .map(gallery -> new GalleryResDTO.GetGalleryResDTO(
                         gallery.getId(),
                         gallery.getName(),
-                        gallery.getThumbnailUrl()
+                        galleryImagesRepository.findImageUrlsByGalleryId(gallery.getId())
+
+
                 ))
                 .toList();
 

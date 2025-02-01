@@ -9,6 +9,8 @@ import com.project.smunionbe.domain.club.entity.Gallery;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class GalleryConverter {
     public static Gallery toGallery(GalleryReqDTO.CreateGalleryDTO createGalleryDTO,Club club) {
@@ -16,7 +18,6 @@ public class GalleryConverter {
         return Gallery.builder()
                 .club(club)
                 .name(createGalleryDTO.name())
-                .thumbnailUrl(createGalleryDTO.thumbnailUrl())
                 .build();
     }
 
@@ -26,11 +27,12 @@ public class GalleryConverter {
         );
     }
 
-    public static GalleryResDTO.GetGalleryResDTO toGetGalleryResponse(Gallery gallery) {
+    public static GalleryResDTO.GetGalleryResDTO toGetGalleryResponse(Gallery gallery, List<String> imageUrls) {
         return new GalleryResDTO.GetGalleryResDTO(
                 gallery.getId(),
                 gallery.getName(),
-                gallery.getThumbnailUrl()
+                imageUrls
+
         );
     }
 
