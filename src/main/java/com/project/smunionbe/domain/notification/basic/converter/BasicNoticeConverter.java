@@ -2,6 +2,7 @@ package com.project.smunionbe.domain.notification.basic.converter;
 
 import com.project.smunionbe.domain.club.entity.Club;
 import com.project.smunionbe.domain.notification.basic.dto.request.BasicNoticeReqDTO;
+import com.project.smunionbe.domain.notification.basic.dto.response.BasicNoticeResDTO;
 import com.project.smunionbe.domain.notification.basic.entity.BasicNotice;
 import com.project.smunionbe.domain.notification.fcm.dto.request.FCMReqDTO;
 
@@ -19,6 +20,17 @@ public class BasicNoticeConverter {
                         : String.join(",", request.targetDepartments()))
                 .date(request.date())
                 .build();
+    }
+
+    public static BasicNoticeResDTO.BasicNoticeResponse toBasicNoticeResponse(BasicNotice basicNotice) {
+        return new BasicNoticeResDTO.BasicNoticeResponse(
+                basicNotice.getId(),
+                basicNotice.getTitle(),
+                basicNotice.getContent(),
+                basicNotice.getTarget(),
+                basicNotice.getDate(),
+                basicNotice.getCreatedAt()
+        );
     }
 
     public static FCMReqDTO.FCMSendDTO toSendDTO(String fcmToken, BasicNotice basicNotice) {
