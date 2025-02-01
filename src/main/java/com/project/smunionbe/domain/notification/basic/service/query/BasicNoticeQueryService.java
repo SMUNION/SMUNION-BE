@@ -10,6 +10,7 @@ import com.project.smunionbe.domain.notification.basic.entity.BasicNotice;
 import com.project.smunionbe.domain.notification.basic.exception.BasicNoticeErrorCode;
 import com.project.smunionbe.domain.notification.basic.exception.BasicNoticeException;
 import com.project.smunionbe.domain.notification.basic.repository.BasicNoticeRepository;
+import com.project.smunionbe.domain.notification.basic.repository.BasicNoticeStatusRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import java.util.List;
 public class BasicNoticeQueryService {
 
     private final BasicNoticeRepository basicNoticeRepository;
+    private final BasicNoticeStatusRepository basicNoticeStatusRepository;
     private final MemberClubRepository memberClubRepository;
 
     public BasicNoticeResDTO.BasicNoticeListResponse getBasicNotices(Long cursor, int size, Long memberClubId) {
@@ -62,5 +64,29 @@ public class BasicNoticeQueryService {
         }
 
         return BasicNoticeConverter.toBasicNoticeDetailResponse(basicNotice);
+    }
+
+    public BasicNoticeResDTO.UnreadMembersResponse getUnreadMembers(Long noticeId, Long memberClubId) {
+        // 1. MemberClub 검증
+        MemberClub memberClub = memberClubRepository.findById(memberClubId)
+                .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.MEMBER_CLUB_NOT_FOUND));
+
+        // 2. BasicNotice 조회 및 검증
+        BasicNotice basicNotice = basicNoticeRepository.findById(noticeId)
+                .orElseThrow(() -> new BasicNoticeException(BasicNoticeErrorCode.NOTICE_NOT_FOUND));
+
+        if (!basicNotice.getClub().getId().equals(memberClub.getClub().getId())) {
+            throw new BasicNoticeException(BasicNoticeErrorCode.ACCESS_DENIED);
+        }
+
+        // 3. 미확인 인원 조회
+        List<MemberClub> unreadMembers = basicNoticeStatusRepository.findUnreadMembersByNotice(basicNotice);
+
+        // 4. DTO 변환
+        List<BasicNoticeResDTO.UnreadMemberResponse> unreadMemberResponses = unreadMembers.stream()
+                .map(member -> new BasicNoticeResDTO.UnreadMemberResponse(member.getId(), member.getNickname()))
+                .toList();
+
+        return new BasicNoticeResDTO.UnreadMembersResponse(noticeId, unreadMemberResponses);
     }
 }

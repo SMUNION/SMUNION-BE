@@ -73,4 +73,17 @@ public class BasicNoticeController {
 
         return CustomResponse.onSuccess(response);
     }
+
+    @GetMapping("/{id}/unread")
+    @Operation(summary = "일반 공지 미확인 인원 조회 API", description = "해당 일반 공지를 확인하지 않은 멤버를 조회합니다.")
+    public CustomResponse<BasicNoticeResDTO.UnreadMembersResponse> getUnreadMembers(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails authMember,
+            HttpSession session) {
+
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, authMember.getMember().getId());
+        BasicNoticeResDTO.UnreadMembersResponse response = basicNoticeQueryService.getUnreadMembers(id, selectedMemberClubId);
+
+        return CustomResponse.onSuccess(response);
+    }
 }
