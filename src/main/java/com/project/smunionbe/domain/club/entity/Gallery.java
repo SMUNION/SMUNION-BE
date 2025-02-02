@@ -22,11 +22,9 @@ public class Gallery {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "thumbnail_url")
-    private String thumbnailUrl;
 
-    public void update(String name, String thumbnailUrl) {
+
+    public void update(String name) {
         this.name = name;
-        this.thumbnailUrl = thumbnailUrl;
     }
 }

@@ -13,12 +13,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ClubConverter {
 
-    public static Club toClub(ClubReqDTO.CreateClubDTO createClubDTO) {
+    public static Club toClub(ClubReqDTO.CreateClubDTO createClubDTO, String thumbnailUrl) {
 
         return Club.builder()
                 .name(createClubDTO.name())
                 .description(createClubDTO.description())
-                .thumbnailUrl(createClubDTO.thumbnailUrl())
+                .thumbnailUrl(thumbnailUrl)
                 .build();
     }
 

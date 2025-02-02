@@ -13,13 +13,20 @@ import com.project.smunionbe.global.apiPayload.CustomResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @Slf4j
@@ -31,26 +38,27 @@ public class GalleryController {
     private final GalleryQueryService galleryQueryService;
     private final ClubSelectionService clubSelectionService;
 
-    @PostMapping("/create/{clubId}")
+    @PostMapping(path = "/create/{clubId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @Operation(
             summary = "갤러리 생성 API",
             description = "동아리 운영진이 갤러리를 생성하는 API 입니다."
     )
     public CustomResponse<GalleryResDTO.CreateGalleryResDTO> createGallery(
-            @RequestBody @Valid GalleryReqDTO.CreateGalleryDTO request,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
+            @RequestPart(value = "name") String name,
             @AuthenticationPrincipal CustomUserDetails auth,
             HttpSession session
 
     ) {
         Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, auth.getMember().getId());
-
-        GalleryResDTO.CreateGalleryResDTO response = galleryCommandService.createGallery(request, selectedMemberClubId);
+        GalleryReqDTO.CreateGalleryDTO request = new GalleryReqDTO.CreateGalleryDTO(name);
+        GalleryResDTO.CreateGalleryResDTO response = galleryCommandService.createGallery(request, selectedMemberClubId, images);
 
         return CustomResponse.onSuccess(response);
 
     }
 
-    @PatchMapping("/modify/{galleryId}")
+    @PatchMapping(path = "/modify/{galleryId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @Operation(
             summary = "갤러리 수정 API",
             description = "기존 갤러리 내용을 수정합니다."
@@ -58,13 +66,16 @@ public class GalleryController {
     public CustomResponse<String> updateGallery(
             @PathVariable Long galleryId,
             @AuthenticationPrincipal CustomUserDetails auth,
-            @RequestBody @Valid GalleryReqDTO.UpdateGalleryRequest request,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
+            @RequestPart(value = "name") String name,
             HttpSession session
 
     ) {
         Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, auth.getMember().getId());
 
-        galleryCommandService.updateGallery(galleryId, request, selectedMemberClubId);
+        GalleryReqDTO.UpdateGalleryRequest request = new GalleryReqDTO.UpdateGalleryRequest(name);
+
+        galleryCommandService.updateGallery(galleryId, request, selectedMemberClubId, images);
         return CustomResponse.onSuccess("동아리 수정 성공");
     }
 
