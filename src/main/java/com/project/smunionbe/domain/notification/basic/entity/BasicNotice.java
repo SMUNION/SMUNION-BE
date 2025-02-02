@@ -1,6 +1,7 @@
 package com.project.smunionbe.domain.notification.basic.entity;
 
 import com.project.smunionbe.domain.club.entity.Club;
+import com.project.smunionbe.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @Table(name = "basic_notice")
-public class BasicNotice {
+public class BasicNotice extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,5 +35,12 @@ public class BasicNotice {
 
     @Column(name = "date")
     private LocalDateTime date;
+
+    public void update(String title, String content, String target, LocalDateTime date) {
+        this.title = title;
+        this.content = content;
+        this.target = target;
+        this.date = date;
+    }
 }
 
