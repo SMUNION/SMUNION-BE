@@ -33,4 +33,6 @@ public interface BasicNoticeStatusRepository extends JpaRepository<BasicNoticeSt
     @Query("DELETE FROM BasicNoticeStatus bns WHERE bns.basicNotice = :basicNotice")
     void deleteByBasicNotice(@Param("basicNotice") BasicNotice basicNotice);
 
+    List<BasicNoticeStatus> findAllByBasicNotice(BasicNotice basicNotice);
+
 }

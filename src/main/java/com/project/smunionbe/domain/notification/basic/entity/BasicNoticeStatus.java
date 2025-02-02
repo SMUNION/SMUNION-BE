@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
-@Table(name = "basic_notice_status")
+@Table(name = "basic_status")
 public class BasicNoticeStatus {
 
     @Id

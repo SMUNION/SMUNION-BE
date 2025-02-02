@@ -19,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -53,7 +55,18 @@ public class BasicNoticeCommandService {
         BasicNotice basicNotice = BasicNoticeConverter.toBasicNotice(request, memberClub.getClub());
         basicNoticeRepository.save(basicNotice);
 
-        // 4. FCM 푸시 알림 전송
+        // 4. 각 멤버에 대한 BasicNoticeStatus 생성
+        List<BasicNoticeStatus> statuses = targetMembers.stream()
+                .map(member -> BasicNoticeStatus.builder()
+                        .basicNotice(basicNotice)
+                        .memberClub(member)
+                        .isRead(false) // 초기 상태는 '읽지 않음'
+                        .build())
+                .toList();
+
+        basicNoticeStatusRepository.saveAll(statuses);
+
+        // 5. FCM 푸시 알림 전송
         fcmNotificationService.sendBasicNoticePushNotifications(basicNotice, targetMembers);
 
         log.info("일반 공지가 생성되었습니다. basicNoticeId: {}, clubId: {}", basicNotice.getId(), memberClub.getClub().getId());
@@ -72,23 +85,49 @@ public class BasicNoticeCommandService {
         BasicNotice basicNotice = basicNoticeRepository.findById(noticeId)
                 .orElseThrow(() -> new BasicNoticeException(BasicNoticeErrorCode.NOTICE_NOT_FOUND));
 
+        // 권한 확인
+        if (!basicNotice.getClub().getId().equals(memberClub.getClub().getId())) {
+            throw new BasicNoticeException(BasicNoticeErrorCode.ACCESS_DENIED);
+        }
+
         // 3. 새로운 타겟 멤버 조회
         List<MemberClub> newTargetMembers = (request.targetDepartments() == null || request.targetDepartments().isEmpty())
-                ? memberClubRepository.findAllByClubId(memberClub.getClub().getId()) // 전체 멤버
-                : memberClubRepository.findAllByClubIdAndDepartments(
-                memberClub.getClub().getId(),
-                request.targetDepartments()
-        );
+                ? memberClubRepository.findAllByClubId(basicNotice.getClub().getId()) // 전체 멤버
+                : memberClubRepository.findAllByClubIdAndDepartments(basicNotice.getClub().getId(), request.targetDepartments());
 
         if (newTargetMembers.isEmpty()) {
             throw new BasicNoticeException(BasicNoticeErrorCode.NO_TARGET_MEMBERS);
         }
 
-        // 4. BasicNotice 수정
+        // 4. 기존 BasicNoticeStatus 조회
+        List<BasicNoticeStatus> existingStatuses = basicNoticeStatusRepository.findAllByBasicNotice(basicNotice);
+        Map<Long, BasicNoticeStatus> existingStatusMap = existingStatuses.stream()
+                .collect(Collectors.toMap(status -> status.getMemberClub().getId(), status -> status));
+
+        // 5. 상태 업데이트 (기존 상태 갱신 + 새로운 상태 추가)
+        for (MemberClub member : newTargetMembers) {
+            BasicNoticeStatus status = existingStatusMap.get(member.getId());
+            if (status == null) {
+                // 새로운 멤버 상태 생성
+                basicNoticeStatusRepository.save(BasicNoticeStatus.builder()
+                        .basicNotice(basicNotice)
+                        .memberClub(member)
+                        .isRead(false) // 초기 상태
+                        .build());
+            }
+        }
+
+        // 6. 유효하지 않은 멤버 상태 삭제
+        List<BasicNoticeStatus> toRemove = existingStatuses.stream()
+                .filter(status -> !newTargetMembers.contains(status.getMemberClub()))
+                .toList();
+        basicNoticeStatusRepository.deleteAll(toRemove);
+
+        // 7. BasicNotice 수정
         basicNotice.update(
                 request.title(),
                 request.content(),
-                newTargetMembers.isEmpty() ? "전체" : String.join(",", request.targetDepartments()),
+                request.targetDepartments() == null || request.targetDepartments().isEmpty() ? "전체" : String.join(", ", request.targetDepartments()),
                 request.date()
         );
 
