@@ -1,6 +1,7 @@
 package com.project.smunionbe.domain.club.dto.response;
 
 import com.project.smunionbe.domain.notification.attendance.dto.response.AttendanceResDTO;
+import com.project.smunionbe.domain.notification.basic.dto.response.BasicNoticeResDTO;
 import com.project.smunionbe.domain.notification.fee.dto.response.FeeResDTO;
 import com.project.smunionbe.domain.notification.vote.dto.response.VoteResDTO;
 
@@ -37,6 +38,7 @@ public record ClubResDTO() {
             String name,
             String description,
             String thumbnailUrl,
+            List<BasicNoticeResDTO.BasicNoticeDetailResponse> basicNoticeDetailResponseList,
             List<AttendanceResDTO.AttendanceDetailResponse> attendanceDetailResponseList,
             List<FeeResDTO.FeeNoticeResponse> feeNoticeResponseList,
             List<VoteResDTO.VoteResponse> voteResponseList,

@@ -16,6 +16,8 @@ import com.project.smunionbe.domain.member.exception.MemberClubException;
 import com.project.smunionbe.domain.member.repository.MemberClubRepository;
 import com.project.smunionbe.domain.notification.attendance.dto.response.AttendanceResDTO;
 import com.project.smunionbe.domain.notification.attendance.repository.AttendanceRepository;
+import com.project.smunionbe.domain.notification.basic.dto.response.BasicNoticeResDTO;
+import com.project.smunionbe.domain.notification.basic.repository.BasicNoticeRepository;
 import com.project.smunionbe.domain.notification.fee.dto.response.FeeResDTO;
 import com.project.smunionbe.domain.notification.fee.repository.FeeNoticeRepository;
 import com.project.smunionbe.domain.notification.vote.dto.response.VoteResDTO;
@@ -35,6 +37,7 @@ import java.util.List;
 public class ClubQueryService {
     private final MemberClubRepository memberClubRepository;
     private final ClubRepository clubRepository;
+    private final BasicNoticeRepository basicNoticeRepository;
     private final AttendanceRepository attendanceRepository;
     private final FeeNoticeRepository feeNoticeRepository;
     private final VoteNoticeRepository voteNoticeRepository;
@@ -72,6 +75,20 @@ public class ClubQueryService {
                 .orElseThrow(() -> new ClubException(ClubErrorCode.CLUB_NOT_FOUND));
 
         Long clubId = club.getId();
+
+
+        List<BasicNoticeResDTO.BasicNoticeDetailResponse> basicNoticeDetailResponseList = basicNoticeRepository.findAllByClubId(clubId)
+                .stream()
+                .map(basicNotice -> new BasicNoticeResDTO.BasicNoticeDetailResponse(
+                        basicNotice.getId(),
+                        basicNotice.getTitle(),
+                        basicNotice.getContent(),
+                        basicNotice.getTarget(),
+                        basicNotice.getDate(),
+                        basicNotice.getCreatedAt(),
+                        basicNotice.getClub().getName()
+                ))
+                .toList();
 
 
         List<AttendanceResDTO.AttendanceDetailResponse> attendanceDetailResponses = attendanceRepository.findAllByClubId(clubId)
@@ -132,6 +149,7 @@ public class ClubQueryService {
                 club.getName(),
                 club.getDescription(),
                 club.getThumbnailUrl(),
+                basicNoticeDetailResponseList,
                 attendanceDetailResponses,
                 feeNoticeResponseList,
                 voteResponses,

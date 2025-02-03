@@ -1,5 +1,6 @@
 package com.project.smunionbe.domain.notification.basic.repository;
 
+import com.project.smunionbe.domain.notification.attendance.entity.AttendanceNotice;
 import com.project.smunionbe.domain.notification.basic.entity.BasicNotice;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,4 +22,7 @@ public interface BasicNoticeRepository extends JpaRepository<BasicNotice, Long> 
             @Param("cursor") Long cursor,
             Pageable pageable
     );
+
+    List<BasicNotice> findAllByClubId(Long clubId);
+
 }
