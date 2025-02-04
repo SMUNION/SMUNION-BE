@@ -27,6 +27,7 @@ import com.project.smunionbe.domain.member.repository.MemberRepository;
 import com.project.smunionbe.global.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.type.TrueFalseConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -118,7 +119,7 @@ public class ClubCommandService {
 
     }
 
-    public void approveClub(ClubReqDTO.ApproveClubRequest request, Long memberId, Long memberClubId) {
+    public void approveClub(ClubReqDTO.ApproveClubRequest request, Long memberId) {
 
         Department department = departmentRepository.findById(request.departmentId())
                 .orElseThrow(() -> new DepartmentException(DepartmentErrorCode.DEPARTMENT_NOT_FOUND));
@@ -153,6 +154,33 @@ public class ClubCommandService {
 
     }
 
+    public void requestWithdrawal(Long memberClubId){
+        MemberClub memberClub = memberClubRepository.findById(memberClubId)
+                .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.INVALID_MEMBER_CLUB));
+
+        memberClub.requestWithdrawal();
+
+        memberClubRepository.save(memberClub);
+    }
+
+    public void approveWithdrawal(Long memberClubId, Long targetMemberId) {
+
+        MemberClub memberClub = memberClubRepository.findById(memberClubId)
+                .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.INVALID_MEMBER_CLUB));
+        if(!memberClub.is_Staff()) {
+            throw new ClubException(ClubErrorCode.ACCESS_DENIED);
+        }
+
+        MemberClub targetmemberClub = memberClubRepository.findById(targetMemberId)
+                .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.INVALID_MEMBER_CLUB));
+        if(!targetmemberClub.is_Withdrawal()) {
+            throw new ClubException(ClubErrorCode.DENIED_WITHDRAWAL);
+        }
+
+
+        memberClubRepository.delete(targetmemberClub);
+
+    }
 
 
 }

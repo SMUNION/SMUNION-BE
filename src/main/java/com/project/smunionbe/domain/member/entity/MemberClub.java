@@ -35,9 +35,17 @@ public class MemberClub {
     @Column(name = "is_Staff")
     private boolean is_Staff;
 
+    // 탈퇴 요청
+    @Column(name = "is_Withdrawal", nullable = false)
+    private boolean is_Withdrawal = false;
+
     //닉네임 변경 메서드
     public void updateNickname(String newNickname) {
         this.nickname = newNickname;
     }
-}
+
+    // 탈퇴 요청 메서드
+    public void requestWithdrawal() {
+        this.is_Withdrawal = true;
+    }}
 

@@ -74,14 +74,12 @@ public class ClubController {
     )
     public CustomResponse<String> approveClub(
             @RequestBody @Valid ClubReqDTO.ApproveClubRequest request,
-            @AuthenticationPrincipal CustomUserDetails auth,
-            HttpSession session
+            @AuthenticationPrincipal CustomUserDetails auth
+
 
     ) {
 
-        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, auth.getMember().getId());
-
-        clubCommandService.approveClub(request, auth.getMember().getId(), selectedMemberClubId);
+        clubCommandService.approveClub(request, auth.getMember().getId());
         return CustomResponse.onSuccess("동아리 가입 성공");
 
     }
@@ -122,4 +120,42 @@ public class ClubController {
         return CustomResponse.onSuccess(response);
 
     }
+
+    @PatchMapping("/withdrawal")
+    @Operation(
+            summary = "동아리 탈퇴 요청 API",
+            description = "멤버가 동아리를 탈퇴 요청하는 API 입니다."
+    )
+    public CustomResponse<String> withdrawalClub(
+            @AuthenticationPrincipal CustomUserDetails auth,
+            HttpSession session
+
+    ) {
+
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, auth.getMember().getId());
+
+        clubCommandService.requestWithdrawal(selectedMemberClubId);
+        return CustomResponse.onSuccess("동아리 탈퇴 요청 성공");
+
+    }
+
+    @DeleteMapping("/withdrawal/{memberId}")
+    @Operation(
+            summary = "동아리 탈퇴 요청 승인 API",
+            description = "탈퇴 요청을 승인하는 API 입니다. 탈퇴 시킬 회원의 ID가 필요합니다."
+    )
+    public CustomResponse<String> approveWithdrawalClub(
+            @AuthenticationPrincipal CustomUserDetails auth,
+            HttpSession session,
+            @PathVariable Long memberId
+
+            ) {
+
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, auth.getMember().getId());
+
+        clubCommandService.approveWithdrawal(selectedMemberClubId, memberId);
+        return CustomResponse.onSuccess("동아리 탈퇴 승인 성공");
+
+    }
+
 }

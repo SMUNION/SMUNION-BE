@@ -17,7 +17,7 @@ public enum ClubErrorCode implements BaseErrorCode {
 
     // 권한 관련 에러
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "Club403_0", "해당 기능을 사용할 수 없습니다."),
-
+    DENIED_WITHDRAWAL(HttpStatus.FORBIDDEN, "Club403_1", "해당 회원은 탈퇴 요청을 하지 않았습니다."),
 
     // 공통 처리
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "Club400_0", "잘못된 요청입니다."),
