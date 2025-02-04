@@ -121,7 +121,14 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     private void handleInvalidToken(HttpServletResponse response, String token) throws IOException {
         CustomResponse<Object> customResponse;
-        if (token == null || tokenProvider.isTokenExpired(token)) {
+        if (token == null) {
+            customResponse = CustomResponse.onFailure(
+                    String.valueOf(AuthErrorCode.JWT_TOKEN_NULL.getStatus().value()),
+                    AuthErrorCode.JWT_TOKEN_NULL.getMessage()
+            );
+            response.setStatus(AuthErrorCode.JWT_TOKEN_NULL.getStatus().value());
+        }
+        else if (tokenProvider.isTokenExpired(token)) {
             customResponse = CustomResponse.onFailure(
                     String.valueOf(AuthErrorCode.JWT_TOKEN_EXPIRED.getStatus().value()),
                     AuthErrorCode.JWT_TOKEN_EXPIRED.getMessage()

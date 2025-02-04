@@ -9,8 +9,8 @@ public class ArticleResponseDTO {
 
     public record ArticleResponse(
             Long id,
-            String departmentName,
             String clubName,
+            String departmentName,
             String nickname,
             String title,
             String content,
