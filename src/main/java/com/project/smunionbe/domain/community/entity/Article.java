@@ -38,6 +38,12 @@ public class Article extends BaseEntity {
     @Builder.Default
     private Integer LikeNum = 0;
 
+    @Column(name = "public_scope", nullable = false)
+    @Builder.Default
+    private int publicScope = 0;
+
+
+
     //제목 변경 메서드
     public void setTitle(String title) {
         this.title = title;

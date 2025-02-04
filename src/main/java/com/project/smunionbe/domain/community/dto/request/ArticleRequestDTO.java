@@ -6,7 +6,8 @@ public class ArticleRequestDTO {
 
     public record CreateArticleRequest(
             @NotBlank String title,      // 게시글 제목
-            @NotBlank String content   // 게시글 내용
+            @NotBlank String content, // 게시글 내용
+            @NotBlank int publicScope //공개 범위
     ) {}
 
     public record UpdateArticleRequest(

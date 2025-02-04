@@ -23,6 +23,7 @@ public class ArticleConverter {
                 .title(dto.title())
                 .content(dto.content())
                 .LikeNum(0)
+                .publicScope(dto.publicScope())
                 .build();
     }
 
