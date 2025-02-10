@@ -1,5 +1,6 @@
 package com.project.smunionbe.domain.notification.attendance.repository;
 
+import com.project.smunionbe.domain.member.entity.MemberClub;
 import com.project.smunionbe.domain.notification.attendance.entity.AttendanceNotice;
 import com.project.smunionbe.domain.notification.attendance.entity.AttendanceStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,4 +24,6 @@ public interface AttendanceStatusRepository extends JpaRepository<AttendanceStat
     @Query("DELETE FROM AttendanceStatus a WHERE a.attendanceNotice.id = :attendanceNoticeId")
     void deleteAllByAttendanceNoticeId(@Param("attendanceNoticeId") Long attendanceNoticeId);
 
+    // 특정 출석 공지와 멤버 클럽의 출석 상태가 존재하는지 확인
+    boolean existsByAttendanceNoticeAndMemberClub(AttendanceNotice attendanceNotice, MemberClub memberClub);
 }
