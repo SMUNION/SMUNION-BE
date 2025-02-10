@@ -148,15 +148,34 @@ public class AttendanceCommandService {
                 .toList();
         attendanceStatusRepository.deleteAll(toRemove);
 
-        // 7. AttendanceNotice 수정
-        attendanceNotice.update(
-                request.title(),
-                request.content(),
-                targetDepartments.contains("전체") ? "전체" : String.join(",", targetDepartments), // "전체" 처리
-                request.date()
-        );
+        // 7. 기존 출석 날짜와 변경된 출석 날짜 비교
+        if (!attendanceNotice.getDate().equals(request.date())) {
+            log.info("출석 공지의 날짜가 변경되었습니다. 기존 날짜: {}, 새로운 날짜: {}", attendanceNotice.getDate(), request.date());
 
-        // 8. 로그 기록
+            // 기존 스케줄 취소
+            cancelExistingScheduler(attendanceId);
+
+            // 8. AttendanceNotice 업데이트
+            attendanceNotice.update(
+                    request.title(),
+                    request.content(),
+                    targetDepartments.contains("전체") ? "전체" : String.join(",", targetDepartments),
+                    request.date()
+            );
+
+            // 9. 새로운 스케줄 등록
+            scheduleRandomCodeGeneration(attendanceNotice);
+        } else {
+            // 날짜 변경 없이 다른 정보만 업데이트
+            attendanceNotice.update(
+                    request.title(),
+                    request.content(),
+                    targetDepartments.contains("전체") ? "전체" : String.join(",", targetDepartments),
+                    request.date()
+            );
+        }
+
+        // 10. 로그 기록
         log.info("출석 공지가 수정되었습니다. attendanceId: {}, memberClubId: {}", attendanceId, selectedMemberClubId);
     }
 
@@ -239,5 +258,11 @@ public class AttendanceCommandService {
 
     private String generateRandomCode() {
         return String.valueOf((int) (Math.random() * 900000) + 100000);  // 6자리 난수
+    }
+
+    private void cancelExistingScheduler(Long attendanceId) {
+        // Redis에서 기존 예약된 난수 데이터를 삭제 (필요하면 확장 가능)
+        redisUtil.delete("Attendance:Code:" + attendanceId);
+        log.info("기존 출석 공지 스케줄 및 난수가 취소되었습니다. attendanceId={}", attendanceId);
     }
 }
