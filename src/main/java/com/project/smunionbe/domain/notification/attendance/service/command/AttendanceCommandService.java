@@ -13,14 +13,21 @@ import com.project.smunionbe.domain.notification.attendance.exception.Attendance
 import com.project.smunionbe.domain.notification.attendance.repository.AttendanceRepository;
 import com.project.smunionbe.domain.notification.attendance.repository.AttendanceStatusRepository;
 import com.project.smunionbe.domain.notification.fcm.service.event.FCMNotificationService;
+import com.project.smunionbe.global.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,6 +41,8 @@ public class AttendanceCommandService {
     private final MemberClubRepository memberClubRepository;
     private final AttendanceStatusRepository attendanceStatusRepository;
     private final FCMNotificationService fcmNotificationService;
+    private final RedisUtil redisUtil;
+    private final TaskScheduler taskScheduler;  // 동적 스케줄링
 
     public void createAttendance(AttendanceReqDTO.CreateAttendanceDTO request, Long selectedMemberClubId) {
         // 1. MemberClub 조회 및 운영진 여부 검증
@@ -76,6 +85,9 @@ public class AttendanceCommandService {
 
         // 7. FCM 푸시 알림 전송
         fcmNotificationService.sendPushNotifications(attendanceNotice, targetMembers);
+
+        // 8. 출석 코드 생성 및 스케줄링
+        scheduleRandomCodeGeneration(attendanceNotice);
     }
 
     public void updateAttendance(Long attendanceId, AttendanceReqDTO.UpdateAttendanceRequest request, Long selectedMemberClubId) {
@@ -170,23 +182,62 @@ public class AttendanceCommandService {
     }
 
     public void verifyAttendance(AttendanceReqDTO.VerifyAttendanceRequest request, Long selectedMemberClubId) {
-        // MemberClub 조회
+        // 1. MemberClub 조회
         MemberClub memberClub = memberClubRepository.findById(selectedMemberClubId)
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.MEMBER_NOT_FOUND));
 
+        // 2. AttendanceNotice 조회
         AttendanceNotice attendanceNotice = attendanceRepository.findById(request.attendanceId())
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ATTENDANCE_NOT_FOUND));
 
+        // 3. Redis에서 난수 조회 및 검증
+        String expectedCode = (String) redisUtil.get("Attendance:Code:" + attendanceNotice.getId());
+        if (expectedCode == null) {
+            throw new AttendanceException(AttendanceErrorCode.CODE_EXPIRED);  // 난수 만료 시
+        }
+
+        if (!expectedCode.equals(request.attendanceCode())) {
+            throw new AttendanceException(AttendanceErrorCode.INVALID_CODE);  // 잘못된 코드 입력 시
+        }
+
+        // 4. AttendanceStatus 조회
         AttendanceStatus attendanceStatus = attendanceStatusRepository.findByAttendanceAndMemberClub(
-                        attendanceNotice.getId(),
-                        memberClub.getId()
-                )
+                        attendanceNotice.getId(), memberClub.getId())
                 .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ATTENDANCE_STATUS_NOT_FOUND));
 
+        // 5. 이미 출석 체크된 경우 예외 처리
         if (attendanceStatus.getIsPresent()) {
             throw new AttendanceException(AttendanceErrorCode.ALREADY_PRESENT);
         }
 
+        // 6. 출석 상태 업데이트
         attendanceStatus.markPresent();
+        log.info("출석 확인 완료: attendanceId={}, memberClubId={}, memberName={}",
+                attendanceNotice.getId(), memberClub.getId(), memberClub.getMember().getName());
+    }
+
+    private void scheduleRandomCodeGeneration(AttendanceNotice attendanceNotice) {
+        LocalDateTime scheduledTime = attendanceNotice.getDate();
+        long delay = Duration.between(LocalDateTime.now(), scheduledTime).toMillis();  // 예약 시간 계산
+
+        if (delay <= 0) {
+            log.warn("예약 시간이 이미 지났습니다. 즉시 난수 생성");
+            generateAndStoreRandomCode(attendanceNotice);
+            return;
+        }
+
+        taskScheduler.schedule(() -> generateAndStoreRandomCode(attendanceNotice),
+                scheduledTime.atZone(ZoneId.systemDefault()).toInstant());
+        log.info("출석 공지 난수 생성 예약 완료: attendanceId={}, scheduledTime={}", attendanceNotice.getId(), scheduledTime);
+    }
+
+    private void generateAndStoreRandomCode(AttendanceNotice attendanceNotice) {
+        String attendanceCode = generateRandomCode();
+        redisUtil.save("Attendance:Code:" + attendanceNotice.getId(), attendanceCode, (long) 300000, TimeUnit.MILLISECONDS);  // 5분 TTL 설정
+        log.info("출석 공지 난수 생성 및 저장: attendanceId={}, code={}", attendanceNotice.getId(), attendanceCode);
+    }
+
+    private String generateRandomCode() {
+        return String.valueOf((int) (Math.random() * 900000) + 100000);  // 6자리 난수
     }
 }
