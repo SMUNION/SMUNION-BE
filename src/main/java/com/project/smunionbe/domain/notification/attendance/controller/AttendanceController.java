@@ -123,4 +123,17 @@ public class AttendanceController {
 
         return CustomResponse.onSuccess("출석이 완료되었습니다.");
     }
+
+    @GetMapping("/{attendanceId}/code")
+    @Operation(summary = "출석 공지 난수 조회 API", description = "특정 출석 공지에 대한 난수를 가져옵니다.")
+    public CustomResponse<String> getAttendanceCode(
+            @PathVariable("attendanceId") Long attendanceId,
+            @AuthenticationPrincipal CustomUserDetails authMember,
+            HttpSession session) {
+
+        Long selectedMemberClubId = clubSelectionService.getSelectedProfile(session, authMember.getMember().getId());
+        String code = attendanceQueryService.getAttendanceCode(attendanceId, selectedMemberClubId);
+
+        return CustomResponse.onSuccess(code);
+    }
 }

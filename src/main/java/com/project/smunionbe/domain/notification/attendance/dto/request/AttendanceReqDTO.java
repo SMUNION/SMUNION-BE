@@ -22,7 +22,8 @@ public class AttendanceReqDTO {
     }
 
     public record VerifyAttendanceRequest(
-            Long attendanceId
+            Long attendanceId,
+            String attendanceCode  // 사용자가 입력한 난수
     ){
     }
 }

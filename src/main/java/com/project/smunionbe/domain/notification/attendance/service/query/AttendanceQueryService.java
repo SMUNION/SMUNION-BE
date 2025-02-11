@@ -10,6 +10,8 @@ import com.project.smunionbe.domain.notification.attendance.entity.AttendanceNot
 import com.project.smunionbe.domain.notification.attendance.exception.AttendanceErrorCode;
 import com.project.smunionbe.domain.notification.attendance.exception.AttendanceException;
 import com.project.smunionbe.domain.notification.attendance.repository.AttendanceRepository;
+import com.project.smunionbe.domain.notification.attendance.repository.AttendanceStatusRepository;
+import com.project.smunionbe.global.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -27,8 +29,10 @@ import java.util.List;
 public class AttendanceQueryService {
 
     private final AttendanceRepository attendanceRepository;
+    private final AttendanceStatusRepository attendanceStatusRepository;
     private final MemberRepository memberRepository;
     private final MemberClubRepository memberClubRepository;
+    private final RedisUtil redisUtil;
 
     public AttendanceResDTO.AttendanceAbsenteesResponse getAbsentees(Long attendanceId, Long selectedMemberClubId) {
         // 1. MemberClub 조회
@@ -101,6 +105,33 @@ public class AttendanceQueryService {
         }
 
         return AttendanceConverter.toDetailResponse(attendanceNotice);
+    }
+
+    public String getAttendanceCode(Long attendanceId, Long memberClubId) {
+        // 1. MemberClub 조회 및 권한 검증
+        MemberClub memberClub = memberClubRepository.findById(memberClubId)
+                .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.MEMBER_NOT_FOUND));
+
+        // 2. AttendanceNotice 조회
+        AttendanceNotice attendanceNotice = attendanceRepository.findById(attendanceId)
+                .orElseThrow(() -> new AttendanceException(AttendanceErrorCode.ATTENDANCE_NOT_FOUND));
+
+        // 3. 권한 확인: 운영진이거나 해당 출석 공지의 대상자인지 검증
+        if (!memberClub.is_Staff() && !isTargetMember(attendanceNotice, memberClub)) {
+            throw new AttendanceException(AttendanceErrorCode.ACCESS_DENIED);
+        }
+
+        // 4. Redis에서 난수 가져오기
+        String attendanceCode = (String) redisUtil.get("Attendance:Code:" + attendanceId);
+        if (attendanceCode == null) {
+            throw new AttendanceException(AttendanceErrorCode.CODE_EXPIRED);
+        }
+
+        return attendanceCode;
+    }
+
+    private boolean isTargetMember(AttendanceNotice attendanceNotice, MemberClub memberClub) {
+        return attendanceStatusRepository.existsByAttendanceNoticeAndMemberClub(attendanceNotice, memberClub);
     }
 }
 
