@@ -47,7 +47,7 @@ public class DepartmentCommandService {
         Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new ClubException(ClubErrorCode.CLUB_NOT_FOUND));
 
-        if (departmentRepository.existsByName(request.name())) {
+        if (departmentRepository.existsByNameAndClubId(request.name(), clubId)) {
             throw new DepartmentException(DepartmentErrorCode.DEPARTMENT_NAME_ALREADY_EXISTS);
         }
         Department department = DepartmentConverter.toDepartment(request, club);
