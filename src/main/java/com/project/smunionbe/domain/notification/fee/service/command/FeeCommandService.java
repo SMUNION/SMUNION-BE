@@ -75,13 +75,9 @@ public class FeeCommandService {
     }
 
     public void updatePaymentStatus(Long feeId, Long memberClubId) {
-        // 1. MemberClub 조회 및 운영진 여부 검증
+        // 1. MemberClub 조회
         MemberClub memberClub = memberClubRepository.findById(memberClubId)
                 .orElseThrow(() -> new MemberClubException(MemberClubErrorCode.MEMBER_CLUB_NOT_FOUND));
-
-        if (!memberClub.is_Staff()) {
-            throw new FeeException(FeeErrorCode.ACCESS_DENIED);
-        }
 
         // 2. FeeNotice 조회
         FeeNotice feeNotice = feeNoticeRepository.findById(feeId)
