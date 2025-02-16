@@ -9,4 +9,6 @@ import java.util.List;
 public interface DepartmentRepository extends JpaRepository<Department, Long> {
     List<Department> findAllByClubId(Long clubId);
     boolean existsByName(String name);
+
+    boolean existsByNameAndClubId(String name, Long clubId);
 }
