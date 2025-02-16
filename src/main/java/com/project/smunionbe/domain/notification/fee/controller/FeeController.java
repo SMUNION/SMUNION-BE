@@ -84,7 +84,7 @@ public class FeeController {
     }
 
     @PostMapping("/{id}/payment")
-    @Operation(summary = "회비 납부 상태 업데이트 API", description = "특정 회비 공지의 납부 상태를 업데이트합니다. 운영진만 접근 가능합니다.")
+    @Operation(summary = "회비 납부 상태 업데이트 API", description = "특정 회비 공지의 납부 상태를 업데이트합니다.")
     public CustomResponse<String> updatePaymentStatus(
             @PathVariable("id") Long feeId,
             @AuthenticationPrincipal CustomUserDetails authMember,
