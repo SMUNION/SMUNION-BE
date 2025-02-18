@@ -41,7 +41,7 @@ public class MemberClubConverter {
         return memberClubs.stream()
                 .map(memberClub -> {
                     Club club = clubMap.get(memberClub.getClub().getId());
-                    Department department = departmentMap.get(club.getId());
+                    Department department = departmentMap.get(memberClub.getDepartment().getId());
                     return toResponse(memberClub, club, department);
                 })
                 .collect(Collectors.toList());
