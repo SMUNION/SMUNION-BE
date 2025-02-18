@@ -57,8 +57,8 @@ public class MemberClubService {
         }
 
         // Department 조회 및 매핑
-        Map<Long, Department> departmentMap = clubMap.values().stream()
-                .map(Club::getId)
+        Map<Long, Department> departmentMap = memberClubs.stream()
+                .map(memberClub -> memberClub.getDepartment().getId())
                 .distinct()
                 .collect(Collectors.toMap(
                         id -> id,
