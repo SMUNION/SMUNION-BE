@@ -261,7 +261,7 @@ public class MemberService {
         context.setVariable("temporaryPassword", temporaryPassword);
 
         String mailBody = templateEngine.process("EmailTemporaryPasswordTemplate", context); // 이메일 본문을 생성
-        defaultEmailSender.sendMail("회원가입 인증번호 메일입니다.", email, mailBody); // 이메일을 전송
+        defaultEmailSender.sendMail("SMUNION 임시 비밀번호 발급", email, mailBody); // 이메일을 전송
     }
 
 
