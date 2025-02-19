@@ -213,5 +213,17 @@ public class MemberController {
                 .body(CustomResponse.onSuccess(HttpStatus.OK, "프로필 사진이 삭제되었습니다."));
     }
 
+    @PostMapping("/find-password")
+    @Operation(
+            summary = "비밀번호 찾기 API",
+            description = "등록된 이메일로 임시 비밀번호를 전송합니다."
+    )
+    public ResponseEntity<CustomResponse<String>> findPassword(@RequestBody @Valid MemberRequestDTO.FindPasswordDTO dto) {
+        memberService.findPassword(dto);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(CustomResponse.onSuccess(HttpStatus.OK, "임시 비밀번호가 이메일로 전송되었습니다."));
+    }
+
+
 
 }

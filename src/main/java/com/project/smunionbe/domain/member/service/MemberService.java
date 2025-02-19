@@ -1,6 +1,7 @@
 package com.project.smunionbe.domain.member.service;
 
 import com.project.smunionbe.domain.community.service.ImageService;
+import com.project.smunionbe.domain.email.service.DefaultEmailSender;
 import com.project.smunionbe.domain.member.converter.MemberConverter;
 import com.project.smunionbe.domain.member.dto.request.MemberRequestDTO;
 import com.project.smunionbe.domain.member.dto.response.MemberResponseDTO;
@@ -15,6 +16,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.thymeleaf.context.Context; // Context 임포트
+import org.thymeleaf.spring6.SpringTemplateEngine;
+
+
+import java.security.SecureRandom;
 
 @RequiredArgsConstructor
 @Service
@@ -23,6 +29,10 @@ public class MemberService {
     private final MemberConverter memberConverter;
     private final BCryptPasswordEncoder passwordEncoder;
     private final ImageService imageService;
+    private final DefaultEmailSender emailSender;
+    private final SpringTemplateEngine templateEngine;
+    private final DefaultEmailSender defaultEmailSender;
+
 
     @Transactional
     public Long save(MemberRequestDTO.CreateMemberDTO dto) {
@@ -55,7 +65,11 @@ public class MemberService {
 
         // 2. 중복 이메일 체크
         if (memberRepository.existsByEmail(dto.email())) {
-            throw new MemberException(MemberErrorCode.DUPLICATE_MEMBER_EMAIL);
+            Member deletedMember = memberRepository.findByEmail(dto.email())
+                    .orElseThrow(() -> new AuthException(AuthErrorCode.MEMBER_NOT_FOUND));
+            if (deletedMember.getDeletedAt() == null) {
+                throw new MemberException(MemberErrorCode.DUPLICATE_MEMBER_EMAIL);
+            }
         }
 
         // 3. DTO를 엔티티로 변환
@@ -63,6 +77,11 @@ public class MemberService {
 
         // 4. 멤버 저장
         try {
+            if (memberRepository.existsByEmail(dto.email())) {
+                Member deletedMember = memberRepository.findByEmail(dto.email())
+                        .orElseThrow(() -> new AuthException(AuthErrorCode.MEMBER_NOT_FOUND));
+                memberRepository.delete(deletedMember);
+            }
             return memberRepository.save(member).getId();
         } catch (Exception e) {
             // 데이터 저장 실패 시 예외 처리
@@ -206,6 +225,45 @@ public class MemberService {
         member.updateProfileImage(null);
         memberRepository.save(member);
     }
+
+    // 비밀번호 찾기
+    @Transactional
+    public void findPassword(MemberRequestDTO.FindPasswordDTO dto) {
+        Member member = memberRepository.findByEmail(dto.email())
+                .orElseThrow(() -> new AuthException(AuthErrorCode.MEMBER_NOT_FOUND));
+
+        // 1. 임시 비밀번호 생성
+        String temporaryPassword = generateTemporaryPassword();
+
+        // 2. 비밀번호 암호화 및 저장
+        member.updatePassword(passwordEncoder.encode(temporaryPassword));
+        memberRepository.save(member);
+
+        // 3. 이메일 전송
+        sendTemporaryPasswordEmail(dto.email(), member.getName(), temporaryPassword);
+    }
+
+    private String generateTemporaryPassword() {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@$!%*?&";
+        StringBuilder password = new StringBuilder();
+        SecureRandom random = new SecureRandom();
+
+        for (int i = 0; i < 10; i++) {
+            password.append(characters.charAt(random.nextInt(characters.length())));
+        }
+
+        return password.toString();
+    }
+
+    private void sendTemporaryPasswordEmail(String email, String name, String temporaryPassword) {
+        Context context = new Context();
+        context.setVariable("name", name);
+        context.setVariable("temporaryPassword", temporaryPassword);
+
+        String mailBody = templateEngine.process("EmailTemporaryPasswordTemplate", context); // 이메일 본문을 생성
+        defaultEmailSender.sendMail("회원가입 인증번호 메일입니다.", email, mailBody); // 이메일을 전송
+    }
+
 
 
 
