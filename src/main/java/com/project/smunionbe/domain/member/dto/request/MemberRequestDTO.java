@@ -22,5 +22,9 @@ public class MemberRequestDTO {
             String confirmPassword   // 새 비밀번호 확인
     ) {}
 
+    public record FindPasswordDTO(
+            String email
+    ) {}
+
 
 }

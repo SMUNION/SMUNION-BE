@@ -53,6 +53,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                         requestURI.startsWith("/api/v1/users/signup") ||
                         requestURI.startsWith("/api/v1/users/login") ||
                         requestURI.startsWith("/api/v1/users/refresh") ||  //  Access Token 재발급 API 필터링 제외
+                        requestURI.startsWith("/api/v1/users/find-password") ||
                         requestURI.startsWith("/api/v1/email/verify"));
 
 
