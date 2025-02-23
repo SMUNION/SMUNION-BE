@@ -19,6 +19,8 @@ public class CorsConfig {
         ArrayList<String> allowedOriginPatterns = new ArrayList<>();
         allowedOriginPatterns.add("http://localhost:8080");
         allowedOriginPatterns.add("http://127.0.0.1:8080");
+        allowedOriginPatterns.add("http://localhost:8081");
+        allowedOriginPatterns.add("http://127.0.0.1:8081");
         allowedOriginPatterns.add("http://localhost:3000");
         allowedOriginPatterns.add("http://127.0.0.1:3000");
         allowedOriginPatterns.add("http://localhost:5500");
