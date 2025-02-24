@@ -31,7 +31,8 @@ public class MemberClubConverter {
                 memberClub.getId(),
                 department.getName(),
                 club.getName(),
-                memberClub.getNickname()
+                memberClub.getNickname(),
+                club.getThumbnailUrl()
         );
     }
 
