@@ -6,7 +6,8 @@ public class MemberClubResponseDTO {
             Long memberClubId,
             String departmentName,
             String clubName,
-            String nickname
+            String nickname,
+            String url
     ) {}
 }
 
