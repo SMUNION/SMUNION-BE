@@ -38,7 +38,7 @@ public class GalleryController {
     private final GalleryQueryService galleryQueryService;
     private final ClubSelectionService clubSelectionService;
 
-    @PostMapping(path = "/create/{clubId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(path = "/create", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @Operation(
             summary = "갤러리 생성 API",
             description = "동아리 운영진이 갤러리를 생성하는 API 입니다."
