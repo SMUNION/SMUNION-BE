@@ -29,6 +29,10 @@ public class CorsConfig {
         allowedOriginPatterns.add("http://127.0.0.1:5000");
         allowedOriginPatterns.add("https://smunion.shop");
         allowedOriginPatterns.add("https://www.smunion.shop");
+        allowedOriginPatterns.add("https://smunion.store");
+        allowedOriginPatterns.add("https://www.smunion.store");
+        allowedOriginPatterns.add("http://smunion.store");
+        allowedOriginPatterns.add("http://www.smunion.store");
 
         configuration.setAllowedOrigins(allowedOriginPatterns); // 허용할 Origin 설정
 
