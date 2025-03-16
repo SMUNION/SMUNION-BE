@@ -1,6 +1,7 @@
 package com.project.smunionbe.domain.notification.fcm.service.command;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
@@ -28,6 +29,8 @@ public class FCMService {
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
+            // FAIL_ON_EMPTY_BEANS 비활성화
+            objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
             String messageJson = objectMapper.writeValueAsString(message);
             log.info("FCM 메시지 구조: {}", messageJson);
         } catch (Exception e) {
