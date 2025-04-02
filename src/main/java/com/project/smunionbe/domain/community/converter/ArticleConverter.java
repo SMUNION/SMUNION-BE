@@ -27,7 +27,7 @@ public class ArticleConverter {
                 .build();
     }
 
-    public ArticleResponseDTO.ArticleResponse toArticleResponseDto(Article article, List<String> imageUrls, String clubName, String departmentName, String nickname) {
-        return new ArticleResponseDTO.ArticleResponse(article.getId(), clubName, departmentName, nickname, article.getTitle(), article.getContent(), imageUrls, article.getLikeNum(), article.getCreatedAt());
+    public ArticleResponseDTO.ArticleResponse toArticleResponseDto(Article article, List<String> imageUrls, String clubName, String departmentName, String nickname, String clubImageUrl) {
+        return new ArticleResponseDTO.ArticleResponse(article.getId(), clubName, departmentName, nickname, article.getTitle(), article.getContent(), imageUrls, article.getLikeNum(), article.getCreatedAt(), clubImageUrl);
     }
 }

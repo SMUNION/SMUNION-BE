@@ -16,6 +16,7 @@ public class ArticleResponseDTO {
             String content,
             List<String> images,
             Integer likeNum,
-            LocalDateTime createdAt
+            LocalDateTime createdAt,
+            String clubImageUrl
     ) {}
 }
