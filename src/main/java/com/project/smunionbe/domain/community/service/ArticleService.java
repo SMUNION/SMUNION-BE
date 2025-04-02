@@ -83,7 +83,7 @@ public class ArticleService {
 
 
         // 저장 후 ID 반환
-        return articleConverter.toArticleResponseDto(article, imageUrls, department.getName(), club.getName(), memberClub.getNickname());
+        return articleConverter.toArticleResponseDto(article, imageUrls, department.getName(), club.getName(), memberClub.getNickname(), club.getThumbnailUrl());
     }
 
     //게시글 단건 조회
@@ -112,9 +112,10 @@ public class ArticleService {
         String clubName = article.getMemberName(); //scope가 0일 경우 개인, 부서, 동아리 전체 표시
         String department = (article.getPublicScope() < 2) ?  article.getDepartment(): "비공개"; //scope가 1일 경우 부서, 동아리 표시
         String memberName = (article.getPublicScope() < 1) ? memberClub.getNickname() : "비공개"; //scope가 2일 경우 동아리 표시
+        String clubImageUrl = article.getMemberClub().getClub().getThumbnailUrl();
 
         // 엔티티 → DTO 변환하여 반환
-        return articleConverter.toArticleResponseDto(article, imageUrls, clubName, department, memberName);
+        return articleConverter.toArticleResponseDto(article, imageUrls, clubName, department, memberName, clubImageUrl);
     }
 
     @Transactional(readOnly = true)
@@ -146,9 +147,10 @@ public class ArticleService {
             String clubName = article.getMemberName(); //scope가 0일 경우 개인, 부서, 동아리 전체 표시
             String department = (article.getPublicScope() < 2) ?  article.getDepartment(): "비공개"; //scope가 1일 경우 부서, 동아리 표시
             String memberName = (article.getPublicScope() < 1) ? memberClub.getNickname() : "비공개"; //scope가 2일 경우 동아리 표시
+            String clubImageUrl = article.getMemberClub().getClub().getThumbnailUrl();
 
             // 엔티티 → DTO 변환하여 반환
-            return articleConverter.toArticleResponseDto(article, imageUrls, clubName, department, memberName);
+            return articleConverter.toArticleResponseDto(article, imageUrls, clubName, department, memberName, clubImageUrl);
         }).toList();
     }
 
@@ -225,7 +227,7 @@ public class ArticleService {
             }
         }
 
-        return articleConverter.toArticleResponseDto(updatedArticle, imageUrls, updatedArticle.getDepartment(), updatedArticle.getMemberName(), updatedArticle.getMemberClub().getNickname());
+        return articleConverter.toArticleResponseDto(updatedArticle, imageUrls, updatedArticle.getDepartment(), updatedArticle.getMemberName(), updatedArticle.getMemberClub().getNickname(), updatedArticle.getMemberClub().getClub().getThumbnailUrl());
     }
 
 
